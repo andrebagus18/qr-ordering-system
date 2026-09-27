@@ -36,4 +36,14 @@ class OrderItemController extends Controller
             'total_amount' => $order->fresh()->total_amount,
         ], 201);
     }
+
+    public function show(Order $order)
+    {
+        $order->load('orderItems');
+
+        return response()->json([
+            'msg' => 'Order berhasil ditemukan',
+            'data' => $order,
+        ]);
+    }
 }
