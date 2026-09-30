@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -27,7 +28,9 @@ class OrderController extends Controller
             'table_id' => ['required', 'exists:tables,id'],
             'customer_name' => ['required', 'string', 'max:100'],
             'order_type' => ['required', 'in:DINE-IN,TAKE-AWAY'],
-            'total_amount' => ['required', 'numeric', 'min:0'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.product_id' => ['required', 'exists:products,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
         ]);
 
         $order = Order::create([
@@ -35,31 +38,38 @@ class OrderController extends Controller
             'customer_name' => $data['customer_name'],
             'order_type' => $data['order_type'],
             'status' => 'PENDING_PAYMENT',
-            'total_amount' => $data['total_amount'],
         ]);
+        $total = 0;
+        foreach ($data['items'] as $item) {
+            $product = Product::findOrFail($item['product_id']);
+            $subtotal = $product->price * $item['quantity'];
+            $order->OrderItems()->create([
+                'product_id' => $product->id,
+                'quantity' => $item['quantity'],
+                'price' => $product->price,
+                'subtotal' => $subtotal,
+            ]);
+            $total += $subtotal;
+        }
         $order->update([
             'order_number' => 'ORD' . str_pad($order->id, 4, '0', STR_PAD_LEFT),
+            'total_amount' => $total,
         ]);
 
         return response()->json([
             'msg' => 'Order berhasil dibuat',
-            'data' => $order,
+            'data' => $order->load('OrderItems.product'),
         ], 201);
     }
 
-    // public function update(Request $request, Order $order)
-    // {
-    //     $validated = $request->validate([
-    //         'status' => ['required', 'in:PENDING_PAYMENT,PROCESSING,COMPLETED,CANCELLED']
-    //     ]);
-
-    //     $order->update([
-    //         'status' => $validated['status']
-    //     ]);
-
-    //     return response()->json([
-    //         'msg' => 'Status order berhasil diubah',
-    //         'data' => $order->fresh(),
-    //     ]);
-    // }
+    public function show(Order $order)
+    {
+        $order = Order::with([
+            'table',
+            'payment'
+        ])->findOrFail($order->id);
+        return response()->json([
+            'data' => $order
+        ]);
+    }
 }

@@ -18,16 +18,15 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
     Route::get('/users', [UserController::class, 'index']);
     Route::post('/users', [UserController::class, 'store']);
     Route::put('/users/{user}', [UserController::class, 'update']);
-    Route::delete('/users/{user}', [UserCOntroller::class, 'destroy']);
-});
-
-Route::middleware('auth:sanctum')->group(function () {
+    Route::delete('/users/{user}', [UserController::class, 'destroy']);
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
-    Route::put('/orders/{order}', [OrderController::class, 'update']);
-    Route::post('/orders/{order}/items', [OrderItemController::class, 'store']);
-    Route::get('/orders/{order}', [OrderItemController::class, 'show']);
+    Route::get('/orders/{order}', [OrderController::class, 'show']);
+
+    Route::get('/orders/item/{order}', [OrderItemController::class, 'show']);
     Route::put('/payments/{payment}', [PaymentController::class, 'update']);
+    Route::post('/payments', [PaymentController::class, 'store']);
+    Route::get('/payments/{payment}', [PaymentController::class, 'show']);
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::post('/categories', [CategoryController::class, 'store']);
     Route::put('/categories/{category}', [CategoryController::class, 'update']);
@@ -42,5 +41,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/tables/{table}', [TableController::class, 'destroy']);
 });
 
-Route::post('/payments', [PaymentController::class, 'store']);
-Route::get('/payments/{payment}', [PaymentController::class, 'show']);
+Route::middleware('auth:sanctum')->group(function () {});
