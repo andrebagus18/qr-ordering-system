@@ -27,6 +27,7 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
     Route::put('/payments/{payment}', [PaymentController::class, 'update']);
     Route::post('/payments', [PaymentController::class, 'store']);
     Route::get('/payments/{payment}', [PaymentController::class, 'show']);
+    Route::patch('/payments/{id}/confirm-cash', [PaymentController::class, 'confirmCashPayment']);
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::post('/categories', [CategoryController::class, 'store']);
     Route::put('/categories/{category}', [CategoryController::class, 'update']);

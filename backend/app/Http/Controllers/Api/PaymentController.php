@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Midtrans\Config;
 
@@ -22,16 +23,43 @@ class PaymentController extends Controller
             'payment_method' => ['required', 'in:CASH,QRIS'],
         ]);
         $order = Order::findOrFail($validated['order_id']);
-        $amount = $order->total_amount; // ambil toal dari database setelah order dibuat
+        $existingPayment = Payment::where('order_id', $order->id)->latest()->first();
+        if ($existingPayment) {
+            if ($existingPayment->status === 'SUCCESS') {
+                return response()->json([
+                    'msg' => 'Pembayaran unttuk order ini sudah dibayarkan',
+                    'data' => $existingPayment
+                ], 409);
+            }
+            if ($existingPayment->status === 'PENDING') {
+                return response()->json([
+                    'msg' => 'Pembayaran untuk order ini masih pending',
+                    'data' => $existingPayment
+                ], 200);
+            }
+        }
+        $amount = $order->total_amount; // ambil total dari database setelah order dibuat
         // if ($order->payment)
         if ($validated['payment_method'] === 'CASH') {
-            $payment = Payment::create([
-                'order_id' => $order->id,
-                'payment_method' => 'CASH',
-                'amount' => $amount,
-                'transaction_id' => null,
-                'status' => 'PENDING',
-            ]);
+            if ($existingPayment && $existingPayment->status === 'FAILED') {
+                $payment = $existingPayment;
+                $payment->update([
+                    'payment_method' => 'CASH',
+                    'amount' => $amount,
+                    'transaction_id' => null,
+                    'qr_code' => null,
+                    'paid_at' => null,
+                    'status' => 'PENDING',
+                ]);
+            } else {
+                $payment = Payment::create([
+                    'order_id' => $order->id,
+                    'payment_method' => 'CASH',
+                    'amount' => $amount,
+                    'transaction_id' => null,
+                    'status' => 'PENDING',
+                ]);
+            }
             return response()->json([
                 'msg' => 'CASH berhasil dibuat',
                 'data' => $payment
@@ -55,20 +83,34 @@ class PaymentController extends Controller
                 ], 400);
             }
             $midtrans = $response->json();
-            $payment = Payment::create([
-                'order_id' => $order->id,
-                'payment_method' => 'QRIS',
-                'amount' => $amount,
-                'transaction_id' => $midtrans['transaction_id'] ?? null,
-                'status' => 'PENDING',
-            ]);
+            $qrCode = collect($midtrans['actions'] ?? [])->firstWhere('name', 'generate-qr-code')['url'] ?? null;
+            if ($existingPayment && $existingPayment->status === 'FAILED') {
+                $payment = $existingPayment;
+                $payment->update([
+                    'payment_method' => 'QRIS',
+                    'amount' => $amount,
+                    'transaction_id' => $midtrans['transaction_id'] ?? null,
+                    'qr_code' => $qrCode,
+                    'status' => 'PENDING',
+                    'paid_at' => null,
+                ]);
+            } else {
+                $payment = Payment::create([
+                    'order_id' => $order->id,
+                    'payment_method' => 'QRIS',
+                    'amount' => $amount,
+                    'transaction_id' => $midtrans['transaction_id'] ?? null,
+                    'qr_code' => $qrCode,
+                    'status' => 'PENDING',
+                ]);
+            }
 
             return response()->json(
                 [
                     'msg' => 'QRIS berhasil dibuat',
                     'data' => [
                         'payment' => $payment,
-                        'qr_code' => collect($midtrans['actions'] ?? [])->firstWhere('name', 'generate-qr-code')['url'] ?? null
+                        'qr_code' => $qrCode,
                     ],
                 ],
                 201
@@ -129,18 +171,63 @@ class PaymentController extends Controller
                 'msg' => 'Pembayaran tidak ditemukan',
             ], 404);
         }
-        // return response()->json([
-        //     'debug' => [
-        //         'payment_id' => $payment->id,
-        //         'transaction_id' => $payment->transaction_id,
-        //         'transaction_id_request' => $request->transaction_id,
-        //         'transaction_status' => $request->transaction_status,
-        //         'status_before' => $payment->status,
-        //     ]
-        // ]);
+        if ($payment->order->order_number !== $orderId) {
+            return response()->json([
+                'msg' => 'Order ID tidak sesuai',
+            ], 422);
+        }
+        if ((float) $payment->amount !== (float) $grossAmount) {
+            return response()->json([
+                'msg' => 'Jumlah pembayaran tidak sesuai',
+            ], 422);
+        }
+        if ($payment->status === 'SUCCESS') {
+            return response()->json([
+                'msg' => 'Pembayaran sudah diproses',
+            ], 200);
+        }
 
         $transactionStatus = $request->transaction_status;
         if ($transactionStatus === 'settlement') {
+            DB::transaction(function () use ($payment) {
+                $payment->update([
+                    'status' => 'SUCCESS',
+                    'paid_at' => now(),
+                ]);
+                $payment->order->update([
+                    'status' => 'PROCESSING',
+                ]);
+            });
+        } elseif ($transactionStatus === 'cancel' || $transactionStatus === 'deny' || $transactionStatus === 'expire') {
+            $payment->update([
+                'status' => 'FAILED',
+            ]);
+        }
+
+        return response()->json([
+            'msg' => 'Notifikasi pembayaran berhasil diproses',
+        ]);
+    }
+
+    public function confirmCashPayment($id)
+    {
+        $payment = Payment::findOrFail($id);
+        if ($payment->payment_method !== 'CASH') {
+            return response()->json([
+                'msg' => 'Pembayaran ini bukan metode Cash',
+            ], 422);
+        }
+        if ($payment->status === 'SUCCESS') {
+            return response()->json([
+                'msg' => 'Pembayaran ini sudah dikonfirmasi',
+            ], 409);
+        }
+        if ($payment->status === 'FAILED') {
+            return response()->json([
+                'msg' => 'Pembayaran ini sudah gagal, tidak bisa dikonfirmasi',
+            ], 422);
+        }
+        DB::transaction(function () use ($payment) {
             $payment->update([
                 'status' => 'SUCCESS',
                 'paid_at' => now(),
@@ -148,10 +235,11 @@ class PaymentController extends Controller
             $payment->order->update([
                 'status' => 'PROCESSING',
             ]);
-        }
+        });
 
         return response()->json([
-            'msg' => 'Notifikasi pembayaran berhasil diproses',
+            'msg' => 'Pembayaran Cash berhasil dikonfirmasi',
+            'data' => $payment->fresh()
         ]);
     }
 }
