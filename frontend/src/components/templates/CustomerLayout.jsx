@@ -23,7 +23,9 @@ const CustomerLayout = ({
         onCartClick={() => onCartOpenChange(true)}
       />
 
-      <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 py-4 relative -mt-16 rounded-t-3xl bg-background">
+        {children}
+      </main>
 
       <CartDrawer
         open={cartOpen}

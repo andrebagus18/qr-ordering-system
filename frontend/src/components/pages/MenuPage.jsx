@@ -3,6 +3,8 @@ import { useMemo, useState } from "react";
 import CustomerLayout from "../templates/CustomerLayout";
 import MenuGrid from "../organisms/MenuGrid";
 import CartSummaryBar from "../organisms/CartSummaryBar";
+import CategoryTabs from "../organisms/CategoryTab";
+import TypeOrder from "../atoms/TypeOrder";
 
 const products = [
   {
@@ -33,6 +35,7 @@ const products = [
 
 const MenuPage = () => {
   const [search, setSearch] = useState("");
+  const [orderType, setOrderType] = useState("DINE-IN");
   const [cart, setCart] = useState({});
   const [cartOpen, setCartOpen] = useState(false);
 
@@ -108,6 +111,8 @@ const MenuPage = () => {
       onRemove={handleRemove}
       onCheckout={handleCheckout}
     >
+      <TypeOrder value={orderType} onChange={setOrderType} />
+      <CategoryTabs />
       <MenuGrid
         products={filteredProducts}
         cart={cart}
@@ -115,6 +120,7 @@ const MenuPage = () => {
         onDecrease={handleDecrease}
       />
       <CartSummaryBar
+        orderType={orderType}
         itemCount={cartCount}
         total={cartTotal}
         onCheckout={handleCheckout}

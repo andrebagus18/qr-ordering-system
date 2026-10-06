@@ -1,13 +1,12 @@
 import ProductImage from "../atoms/ProductImage";
 import Price from "../atoms/Price";
 import QuantityControl from "../molecules/QuantityControl";
-
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
 const MenuCard = ({ product, quantity = 0, onIncrease, onDecrease }) => {
   return (
-    <Card className="gap-0 overflow-hidden rounded-2xl py-0">
+    <Card className="gap-0 overflow-hidden rounded-lg py-0">
       {/* Product Image */}
       <div className="relative aspect-square overflow-hidden">
         <ProductImage src={product.image} alt={product.name} />
@@ -20,11 +19,10 @@ const MenuCard = ({ product, quantity = 0, onIncrease, onDecrease }) => {
       </div>
 
       {/* Product Information */}
-      <CardContent className="space-y-3 p-4">
+      <CardContent className="p-2">
         <div>
           <h3 className="line-clamp-1 font-semibold">{product.name}</h3>
-
-          <p className="mt-1 line-clamp-2 min-h-10 text-sm text-muted-foreground">
+          <p className="line-clamp-2 min-h-10 text-xs text-muted-foreground">
             {product.description}
           </p>
         </div>

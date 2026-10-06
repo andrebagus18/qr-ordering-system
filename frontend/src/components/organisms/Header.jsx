@@ -1,34 +1,51 @@
 import { ShoppingCart } from "lucide-react";
 import Logo from "../atoms/Logo";
-import SearchBar from "../molecules/SearchBar";
 import { Button } from "@/components/ui/button";
+import BackgroundImage from "../atoms/BackgroundImage";
+import { useEffect, useState } from "react";
 
-const Header = ({ search, onSearchChange, cartCount = 0, onCartClick }) => {
+const Header = ({ cartCount = 0, onCartClick }) => {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const scrollColor = () => {
+      setScrolled(window.scrollY > 120);
+    };
+    window.addEventListener("scroll", scrollColor);
+    return () => {
+      window.removeEventListener("scroll", scrollColor);
+    };
+  }, []);
   return (
-    <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
-        <Logo />
+    <>
+      <header className="sticky top-0 z-50 border-b border-white/20 bg-white/15 backdrop-blur-[2px] shadow-2xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2">
+          <Logo />
 
-        <div className="flex-1">
-          <SearchBar value={search} onChange={onSearchChange} />
+          <div className="flex rounded-xl">
+            <h3 className="font-semibold text-md">Meja 01</h3>
+            {/* <SearchBar value={search} onChange={onSearchChange} /> */}
+          </div>
+
+          <Button
+            size="icon"
+            className="relative shrink-0 bg-slate-950/10"
+            onClick={onCartClick}
+          >
+            <ShoppingCart
+              className={scrolled ? "text-amber-600" : "text-black"}
+            />
+            {cartCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center bg-red-500 text-white rounded-full text-xs">
+                {cartCount}
+              </span>
+            )}
+          </Button>
         </div>
-
-        <Button
-          variant="outline"
-          size="icon"
-          className="relative shrink-0"
-          onClick={onCartClick}
-        >
-          <ShoppingCart />
-
-          {cartCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-              {cartCount}
-            </span>
-          )}
-        </Button>
+      </header>
+      <div className="relative">
+        <BackgroundImage className="h-54 -mt-12" />
       </div>
-    </header>
+    </>
   );
 };
 

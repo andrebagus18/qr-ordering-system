@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 const QuantityControl = ({ quantity, onDecrease, onIncrease }) => {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center justify-between gap-2">
       <Button
         variant="outline"
         size="icon"
