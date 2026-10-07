@@ -19,14 +19,12 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
 
   const handleSubmit = async (e) => {
-    e.reventDefault();
-    console.log("login");
+    e.preventDefault();
     try {
       await login({
         email,
         password,
       });
-      console.log("berhasil");
       navigate("/menu");
     } catch (error) {
       console.error("error", error);
