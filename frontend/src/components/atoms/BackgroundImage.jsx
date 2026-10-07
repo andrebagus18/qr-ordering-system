@@ -1,4 +1,4 @@
-import bgImage from "@/assets/bg-hero.jpeg";
+import bgImage from "@/assets/images/bg-hero.jpeg";
 
 const BackgroundImage = ({ className = "" }) => {
   return (

@@ -10,7 +10,6 @@ const MenuCard = ({ product, quantity = 0, onIncrease, onDecrease }) => {
       {/* Product Image */}
       <div className="relative aspect-square overflow-hidden">
         <ProductImage src={product.image} alt={product.name} />
-
         {!product.is_available && (
           <Badge variant="destructive" className="absolute left-3 top-3">
             Habis
@@ -26,9 +25,7 @@ const MenuCard = ({ product, quantity = 0, onIncrease, onDecrease }) => {
             {product.description}
           </p>
         </div>
-
         <Price value={product.price} />
-
         {product.is_available && (
           <QuantityControl
             quantity={quantity}
