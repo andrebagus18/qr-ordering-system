@@ -242,4 +242,16 @@ class PaymentController extends Controller
             'data' => $payment->fresh()
         ]);
     }
+
+    public function getPaymentStatus($id)
+    {
+        $payment = Payment::findOrFail($id);
+        return response()->json([
+            'data' => [
+                'id' => $payment->id,
+                'status' => $payment->status,
+                'paid_at' => $payment->paid_at,
+            ],
+        ]);
+    }
 }

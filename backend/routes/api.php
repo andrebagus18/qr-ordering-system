@@ -44,3 +44,4 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
 
 Route::middleware('auth:sanctum')->group(function () {});
 Route::post('/payments/notification', [PaymentController::class, 'notification']);
+Route::get('/payments/{id}/status', [PaymentController::class, 'getPaymentStatus']);
