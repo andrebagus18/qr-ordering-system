@@ -1,4 +1,4 @@
-import api from "@/services/api";
+import api from "./api";
 
 export const getProducts = async () => {
   const response = await api.get("/products");

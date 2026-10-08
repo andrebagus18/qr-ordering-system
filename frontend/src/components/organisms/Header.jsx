@@ -8,7 +8,7 @@ const Header = ({ cartCount = 0, onCartClick }) => {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const scrollColor = () => {
-      setScrolled(window.scrollY > 120);
+      setScrolled(window.scrollY > 150);
     };
     window.addEventListener("scroll", scrollColor);
     return () => {
@@ -17,10 +17,11 @@ const Header = ({ cartCount = 0, onCartClick }) => {
   }, []);
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-white/20 bg-white/15 backdrop-blur-[2px] shadow-2xl">
+      <header
+        className={`sticky top-0 z-50 border-b border-white/20  shadow-2xl ${scrolled ? "bg-white" : "bg-white/15 backdrop-blur-[2px]"}`}
+      >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2">
           <Logo />
-
           <div className="flex rounded-xl">
             <h3 className="font-semibold text-md">Meja 01</h3>
             {/* <SearchBar value={search} onChange={onSearchChange} /> */}

@@ -7,64 +7,23 @@ import TypeOrder from "../atoms/TypeOrder";
 import { useProducts } from "../hooks/useProducts";
 
 const MenuPage = () => {
-  const { products, loading, fetchProducts } = useProducts();
-  const [search, setSearch] = useState("");
-  const [orderType, setOrderType] = useState("DINE-IN");
-  const [cart, setCart] = useState({});
-  const [cartOpen, setCartOpen] = useState(false);
-
-  const handleIncrease = (product) => {
-    setCart((prev) => ({
-      ...prev,
-      [product.id]: (prev[product.id] || 0) + 1,
-    }));
-  };
-
-  const handleDecrease = (product) => {
-    setCart((prev) => {
-      const quantity = prev[product.id] || 0;
-
-      if (quantity <= 1) {
-        const updated = { ...prev };
-        delete updated[product.id];
-        return updated;
-      }
-
-      return {
-        ...prev,
-        [product.id]: quantity - 1,
-      };
-    });
-  };
-
-  const cartItems = products
-    .filter((product) => cart[product.id])
-    .map((product) => ({
-      ...product,
-      quantity: cart[product.id],
-    }));
-
-  const cartCount = Object.values(cart).reduce(
-    (total, quantity) => total + quantity,
-    0,
-  );
-
-  const cartTotal = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0,
-  );
-
-  const handleRemove = (productId) => {
-    setCart((prev) => {
-      const updated = { ...prev };
-      delete updated[productId];
-      return updated;
-    });
-  };
-
-  const handleCheckout = () => {
-    console.log("Checkout:", cartItems);
-  };
+  const {
+    products,
+    loading,
+    fetchProducts,
+    cart,
+    handleCheckout,
+    handleIncrease,
+    handleDecrease,
+    handleRemove,
+    cartItems,
+    cartTotal,
+    cartCount,
+    orderType,
+    setOrderType,
+    cartOpen,
+    setCartOpen,
+  } = useProducts();
 
   return (
     <CustomerLayout
