@@ -29,7 +29,7 @@ const Header = ({ cartCount = 0, onCartClick }) => {
 
           <Button
             size="icon"
-            className="relative shrink-0 bg-slate-950/10"
+            className="relative shrink-0 bg-slate-950/10 cursor-pointer hover:bg-white hover:border-amber-600"
             onClick={onCartClick}
           >
             <ShoppingCart

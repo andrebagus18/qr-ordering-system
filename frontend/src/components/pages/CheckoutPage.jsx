@@ -34,7 +34,6 @@ const CheckoutPage = () => {
         order_id: orderResponse.data.id,
         payment_method: paymentMethod,
       });
-      console.log("payment", paymentResponse);
       navigate("/payments", {
         state: {
           order: orderResponse.data,
@@ -127,7 +126,6 @@ const CheckoutPage = () => {
           <CardHeader>
             <CardTitle className="text-base">Metode Pembayaran</CardTitle>
           </CardHeader>
-
           <CardContent>
             <RadioGroup
               value={paymentMethod}
@@ -137,9 +135,13 @@ const CheckoutPage = () => {
               {/* QRIS */}
               <label
                 htmlFor="qris"
-                className="flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition hover:bg-muted/50"
+                className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition hover:bg-muted/50 ${paymentMethod === "QRIS" ? "border-amber-600" : "border"}`}
               >
-                <RadioGroupItem value="QRIS" id="qris" />
+                <RadioGroupItem
+                  value="QRIS"
+                  id="qris"
+                  className="border-amber-600"
+                />
                 <div className="flex size-10 items-center justify-center rounded-lg bg-muted">
                   <CreditCard className="size-5" />
                 </div>
@@ -153,9 +155,13 @@ const CheckoutPage = () => {
               {/* CASH */}
               <label
                 htmlFor="cash"
-                className="flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition hover:bg-muted/50"
+                className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition hover:bg-muted/50 ${paymentMethod === "CASH" ? "border-amber-600" : "border"}`}
               >
-                <RadioGroupItem value="CASH" id="cash" />
+                <RadioGroupItem
+                  value="CASH"
+                  id="cash"
+                  className="border-amber-600"
+                />
                 <div className="flex size-10 items-center justify-center rounded-lg bg-muted">
                   <Banknote className="size-5" />
                 </div>
@@ -179,7 +185,7 @@ const CheckoutPage = () => {
             <Price value={total} />
           </div>
           <Button
-            className="h-12 px-6"
+            className="h-12 px-6 cursor-pointer bg-amber-600 hover:bg-white hover:border-amber-600 hover:text-amber-600"
             disabled={
               !customerName || !paymentMethod || loadingOrder || loadingPayment
             }

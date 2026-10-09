@@ -16,7 +16,7 @@ const CartSummaryBar = ({
       <div className="flex min-h-10 items-center py-2">
         <Button
           onClick={onCheckout}
-          className="fixed inset-x-4 bottom-4 z-50 mx-auto flex h-12 max-w-2xl items-center justify-between px-4 shadow-xl bg-amber-600"
+          className="fixed inset-x-4 bottom-4 z-50 mx-auto flex h-12 max-w-2xl items-center justify-between px-4 shadow-xl bg-amber-600 hover:bg-amber-700 cursor-pointer"
         >
           <div className="flex items-center gap-3">
             <div className="relative">

@@ -3,10 +3,18 @@ import { getProducts } from "@/services/products.services";
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
+const getInitialCart = () => {
+  try {
+    return JSON.parse(localStorage.getItem("kopi-kita-cart")) || {};
+  } catch (error) {
+    return {};
+  }
+};
+
 export function useProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [cart, setCart] = useState({});
+  const [cart, setCart] = useState(getInitialCart);
   const [orderType, setOrderType] = useState("DINE-IN");
   const [cartOpen, setCartOpen] = useState(false);
   const navigate = useNavigate();
@@ -26,6 +34,10 @@ export function useProducts() {
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  useEffect(() => {
+    localStorage.setItem("kopi-kita-cart", JSON.stringify(cart));
+  }, [cart]);
 
   const cartItems = products
     .filter((product) => cart[product.id])
