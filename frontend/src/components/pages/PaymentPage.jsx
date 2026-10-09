@@ -19,14 +19,14 @@ const PaymentPage = () => {
   const [paymentStatus, setPaymentStatus] = useState(
     payment?.status ?? "PENDING",
   );
-  const [copied, setCopied] = useState(false);
+  // const [copied, setCopied] = useState(false);
   const isQRIS = paymentMethod === "QRIS";
   const isPaid = paymentStatus === "SUCCESS";
-  const handleQR = async () => {
-    if (!payment?.qr_code) return;
-    await navigator.clipboard.writeText(payment.qr_code);
-    setCopied(true);
-  };
+  // const handleQR = async () => {
+  //   if (!payment?.qr_code) return;
+  //   await navigator.clipboard.writeText(payment.qr_code);
+  //   setCopied(true);
+  // };
   useEffect(() => {
     if (!isQRIS || !payment?.payment?.id || paymentStatus === "SUCCESS") {
       return;
@@ -105,7 +105,7 @@ const PaymentPage = () => {
               </div>
             </div>
             <Button
-              className="mt-6 h-12 w-full"
+              className="mt-6 h-12 w-full bg-amber-600 hover:bg-white hover:border-amber-600 hover:text-amber-600 cursor-pointer"
               onClick={() => navigate("/menu", { replace: true })}
             >
               Kembali ke Menu
@@ -122,21 +122,21 @@ const PaymentPage = () => {
         {/* Header */}
         <div className="text-center">
           <h1 className="text-2xl font-bold">Pembayaran</h1>
-          <span className="mt-1 text-md font-bold text-muted-foreground capitalize">
+          <span className="mt-1 text-md font-bold text-muted-foreground uppercase">
             {order.customer_name}
           </span>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Order #{order.order_number}
           </p>
         </div>
 
         {/* Total */}
-        <Card>
+        <Card className="gap-1">
           <CardHeader>
             <CardTitle className="text-base">Total Pembayaran</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
+            <p className="text-2xl font-bold">
               <Price value={order.total_amount} />
             </p>
           </CardContent>
@@ -175,7 +175,7 @@ const PaymentPage = () => {
                 <p className="text-center text-sm text-muted-foreground">
                   Scan QRIS menggunakan aplikasi pembayaran Anda.
                 </p>
-                {payment?.qr_code && (
+                {/* {payment?.qr_code && (
                   <Button
                     variant="outline"
                     className="w-full"
@@ -193,7 +193,7 @@ const PaymentPage = () => {
                       </>
                     )}
                   </Button>
-                )}
+                )} */}
               </>
             ) : (
               <div className="rounded-xl bg-muted p-5 text-center">
@@ -204,19 +204,8 @@ const PaymentPage = () => {
                 </p>
               </div>
             )}
-            <Separator />
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Status</span>
-              <span className="flex items-center gap-1 text-sm font-medium">
-                <CheckCircle2 className="size-4" />
-                Menunggu Pembayaran
-              </span>
-            </div>
           </CardContent>
         </Card>
-
-        {/* Action */}
-        <Button className="h-12 w-full">Saya Sudah Bayar</Button>
       </div>
     </div>
   );

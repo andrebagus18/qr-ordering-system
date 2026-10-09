@@ -115,6 +115,7 @@ const CheckoutPage = () => {
             <Input
               id="customer-name"
               placeholder="Masukkan nama kamu"
+              className="focus-visible:border-amber-600"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
             />
@@ -185,7 +186,7 @@ const CheckoutPage = () => {
             <Price value={total} />
           </div>
           <Button
-            className="h-12 px-6 cursor-pointer bg-amber-600 hover:bg-white hover:border-amber-600 hover:text-amber-600"
+            className="h-12 px-4 cursor-pointer bg-amber-600 hover:bg-white hover:border-amber-600 hover:text-amber-600"
             disabled={
               !customerName || !paymentMethod || loadingOrder || loadingPayment
             }
