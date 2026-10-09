@@ -30,15 +30,14 @@ const CheckoutPage = () => {
         customerName,
         orderType,
       });
-      console.log("order berhasil", orderResponse);
       const paymentResponse = await submitPayment({
         order_id: orderResponse.data.id,
         payment_method: paymentMethod,
       });
-      console.log("payment berhasil", paymentResponse);
+      console.log("payment", paymentResponse);
       navigate("/payments", {
         state: {
-          order: orderResponse,
+          order: orderResponse.data,
           payment: paymentResponse.data,
           paymentMethod,
         },

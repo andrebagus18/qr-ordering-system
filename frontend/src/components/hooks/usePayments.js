@@ -1,6 +1,6 @@
 import { showError } from "@/lib/alert";
-import { createPayment } from "@/services/payment.services";
-import { useState } from "react";
+import { createPayment, getPaymetStatus } from "@/services/payment.services";
+import { useState, useCallback } from "react";
 
 export function usePayment() {
   const [loading, setLoading] = useState(false);
@@ -19,9 +19,22 @@ export function usePayment() {
     }
   };
 
+  const getStatus = useCallback(async (id) => {
+    try {
+      setLoading(true);
+      const result = await getPaymetStatus(id);
+      return result.data;
+    } catch (error) {
+      showError(error.response?.data?.msg || "Gagal memua status pembayaran");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     payment,
     loading,
     create,
+    getStatus,
   };
 }
