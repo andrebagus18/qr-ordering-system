@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CustomerLayout from "../templates/CustomerLayout";
 import MenuGrid from "../organisms/MenuGrid";
 import CartSummaryBar from "../organisms/CartSummaryBar";
@@ -24,6 +24,45 @@ const MenuPage = () => {
     cartOpen,
     setCartOpen,
   } = useProducts();
+  const [activeCategory, setActiveCategory] = useState("");
+
+  const handleClickCategory = (category) => {
+    const section = document.getElementById(`category-${category}`);
+    section?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+    setActiveCategory(category);
+  };
+  const groupCategory = products.reduce((groups, product) => {
+    const category = product.category_name;
+    if (!groups[category]) {
+      groups[category] = [];
+    }
+    groups[category].push(product);
+    return groups;
+  }, {});
+  useEffect(() => {
+    const sections = document.querySelectorAll('section[id^="category-"]');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleSections = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - a.boundingClientRect.top);
+        if (visibleSections.length > 0) {
+          const id = visibleSections[0].target.id;
+          const category = id.replace("category-", "");
+          setActiveCategory(category);
+        }
+      },
+      {
+        rootMargin: "-120px 0px -60% 0px",
+        threshold: 0,
+      },
+    );
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [products]);
 
   return (
     <CustomerLayout
@@ -37,15 +76,28 @@ const MenuPage = () => {
       onCheckout={handleCheckout}
     >
       <TypeOrder value={orderType} onChange={setOrderType} />
-      <CategoryTabs />
-      <MenuGrid
-        products={products}
-        loading={loading}
-        fetchProducts={fetchProducts}
-        cart={cart}
-        onIncrease={handleIncrease}
-        onDecrease={handleDecrease}
+      <CategoryTabs
+        categories={Object.keys(groupCategory)}
+        activeCategory={activeCategory}
+        onSelect={handleClickCategory}
       />
+      {Object.entries(groupCategory).map(([category, items]) => {
+        <section
+          key={category}
+          id={`category-${category}`}
+          className="scroll mt-32"
+        >
+          <h2 className="mb-4 text-lg font-bold">{category}</h2>
+          <MenuGrid
+            products={items}
+            loading={loading}
+            fetchProducts={fetchProducts}
+            cart={cart}
+            onIncrease={handleIncrease}
+            onDecrease={handleDecrease}
+          />
+        </section>;
+      })}
       <CartSummaryBar
         orderType={orderType}
         itemCount={cartCount}
