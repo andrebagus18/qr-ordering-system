@@ -35,7 +35,7 @@ const MenuPage = () => {
     setActiveCategory(category);
   };
   const groupCategory = products.reduce((groups, product) => {
-    const category = product.category_name;
+    const category = product.category.name;
     if (!groups[category]) {
       groups[category] = [];
     }
@@ -63,6 +63,8 @@ const MenuPage = () => {
     sections.forEach((section) => observer.observe(section));
     return () => observer.disconnect();
   }, [products]);
+  // console.log("products", products);
+  // console.log("group", groupCategory);
 
   return (
     <CustomerLayout
@@ -81,13 +83,16 @@ const MenuPage = () => {
         activeCategory={activeCategory}
         onSelect={handleClickCategory}
       />
+      <h1>RES MASUK GRID</h1>
       {Object.entries(groupCategory).map(([category, items]) => {
+        console.log("masuk");
         <section
           key={category}
           id={`category-${category}`}
           className="scroll mt-32"
         >
           <h2 className="mb-4 text-lg font-bold">{category}</h2>
+          {console.log("cat", category)}
           <MenuGrid
             products={items}
             loading={loading}
@@ -98,6 +103,7 @@ const MenuPage = () => {
           />
         </section>;
       })}
+      <h1>sudah</h1>
       <CartSummaryBar
         orderType={orderType}
         itemCount={cartCount}
