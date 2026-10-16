@@ -28,9 +28,12 @@ const MenuPage = () => {
 
   const handleClickCategory = (category) => {
     const section = document.getElementById(`category-${category}`);
-    section?.scrollIntoView({
+    if (!section) return;
+    const offset = 100;
+    const top = section.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({
+      top,
       behavior: "smooth",
-      block: "start",
     });
     setActiveCategory(category);
   };
@@ -56,7 +59,7 @@ const MenuPage = () => {
         }
       },
       {
-        rootMargin: "-120px 0px -60% 0px",
+        rootMargin: "-112px 0px -60% 0px",
         threshold: 0,
       },
     );
@@ -83,27 +86,25 @@ const MenuPage = () => {
         activeCategory={activeCategory}
         onSelect={handleClickCategory}
       />
-      <h1>RES MASUK GRID</h1>
-      {Object.entries(groupCategory).map(([category, items]) => {
-        console.log("masuk");
-        <section
-          key={category}
-          id={`category-${category}`}
-          className="scroll mt-32"
-        >
-          <h2 className="mb-4 text-lg font-bold">{category}</h2>
-          {console.log("cat", category)}
-          <MenuGrid
-            products={items}
-            loading={loading}
-            fetchProducts={fetchProducts}
-            cart={cart}
-            onIncrease={handleIncrease}
-            onDecrease={handleDecrease}
-          />
-        </section>;
-      })}
-      <h1>sudah</h1>
+      <div className="pb-16">
+        {Object.entries(groupCategory).map(([category, items]) => (
+          <section
+            key={category}
+            id={`category-${category}`}
+            className="scroll mt-5"
+          >
+            <h2 className="mb-2 text-lg font-bold">{category}</h2>
+            <MenuGrid
+              products={items}
+              loading={loading}
+              fetchProducts={fetchProducts}
+              cart={cart}
+              onIncrease={handleIncrease}
+              onDecrease={handleDecrease}
+            />
+          </section>
+        ))}
+      </div>
       <CartSummaryBar
         orderType={orderType}
         itemCount={cartCount}
