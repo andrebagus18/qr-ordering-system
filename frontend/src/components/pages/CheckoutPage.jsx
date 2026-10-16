@@ -16,6 +16,7 @@ const CheckoutPage = () => {
   const { loading: loadingPayment, create: submitPayment } = usePayment();
   const [customerName, setCustomerName] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
+  const [errors, setErrors] = useState({});
   const location = useLocation();
   const { cartItems = [], orderType = "" } = location.state || {};
   const navigate = useNavigate();
@@ -24,6 +25,15 @@ const CheckoutPage = () => {
     0,
   );
   const handleSubmit = async () => {
+    const newErrors = {};
+    if (!customerName.trim()) {
+      newErrors.customerName = "Nama wajib diisi!";
+    }
+    if (!paymentMethod) {
+      newErrors.paymentMethod = "Pilih metode pembayaran!";
+    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
     try {
       const orderResponse = await submitOrder({
         cartItems,
@@ -117,8 +127,14 @@ const CheckoutPage = () => {
               placeholder="Masukkan nama kamu"
               className="focus-visible:border-amber-600"
               value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
+              onChange={(e) => {
+                setCustomerName(e.target.value);
+                setErrors((prev) => ({ ...prev, customerName: "" }));
+              }}
             />
+            {errors.customerName && (
+              <p className="mt-1 text-sm text-red-500">{errors.customerName}</p>
+            )}
           </CardContent>
         </Card>
 
@@ -174,6 +190,11 @@ const CheckoutPage = () => {
                 </div>
               </label>
             </RadioGroup>
+            {errors.paymentMethod && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.paymentMethod}
+              </p>
+            )}
           </CardContent>
         </Card>
       </main>

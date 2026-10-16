@@ -14,11 +14,13 @@ class Payment extends Model
         'transaction_id',
         'qr_code',
         'paid_at',
+        'expires_at'
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'paid_at' => 'datetime',
+        'expires_at' => 'datetime',
     ];
 
     public function order()

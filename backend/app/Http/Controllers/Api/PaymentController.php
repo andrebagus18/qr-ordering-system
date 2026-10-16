@@ -32,10 +32,26 @@ class PaymentController extends Controller
                 ], 409);
             }
             if ($existingPayment->status === 'PENDING') {
-                return response()->json([
-                    'msg' => 'Pembayaran untuk order ini masih pending',
-                    'data' => $existingPayment
-                ], 200);
+                if ($existingPayment->payment_method === 'QRIS') {
+                    if ($existingPayment->expires_at && now()->greaterThanOrEqualTo($existingPayment->expires_at)) {
+                        $existingPayment->update([
+                            'status' => 'FAILED',
+                        ]);
+                    } else {
+                        return response()->json([
+                            'msg' => 'QRIS masih berlaku',
+                            'data' => [
+                                'payment' => $existingPayment,
+                                'qr_code' => $existingPayment->qr_code,
+                            ]
+                        ], 200);
+                    }
+                } else {
+                    return response()->json([
+                        'msg' => 'Pembayaran untuk order ini masih pending',
+                        'data' => $existingPayment
+                    ], 200);
+                }
             }
         }
         $amount = $order->total_amount; // ambil total dari database setelah order dibuat
@@ -93,6 +109,7 @@ class PaymentController extends Controller
                     'qr_code' => $qrCode,
                     'status' => 'PENDING',
                     'paid_at' => null,
+                    'expires_at' => now()->addMinutes(10),
                 ]);
             } else {
                 $payment = Payment::create([
@@ -102,6 +119,7 @@ class PaymentController extends Controller
                     'transaction_id' => $midtrans['transaction_id'] ?? null,
                     'qr_code' => $qrCode,
                     'status' => 'PENDING',
+                    'expires_at' => now()->addMinutes(10),
                 ]);
             }
 
@@ -190,11 +208,21 @@ class PaymentController extends Controller
         $transactionStatus = $request->transaction_status;
         if ($transactionStatus === 'settlement') {
             DB::transaction(function () use ($payment) {
+                $payment = Payment::whereKey($payment->id)->lockForUpdate()->first()->firstOrFail();
+                $order = Order::whereKey($payment->order_id)->lockForUpdate()->firstOrFail();
+                // jangan proses ulang pembayaran yang sudah sukses
+                if ($payment->status === 'SUCCESS') {
+                    return;
+                }
+                // jangan hidupkan lagi order yang sudah dibatalkan
+                if ($order->status === 'CANCELLED') {
+                    return;
+                }
                 $payment->update([
                     'status' => 'SUCCESS',
                     'paid_at' => now(),
                 ]);
-                $payment->order->update([
+                $order->update([
                     'status' => 'PROCESSING',
                 ]);
             });
@@ -253,5 +281,37 @@ class PaymentController extends Controller
                 'paid_at' => $payment->paid_at,
             ],
         ]);
+    }
+
+    public function cancel(Request $request)
+    {
+        $validated = $request->validate([
+            'order_id' => ['required', 'exists:orders,id'],
+        ]);
+        return DB::transaction(function () use ($validated) {
+            $order = Order::whereKey($validated['order_id'])->lockForUpdate()->firstOrFail();
+            $payment = Payment::where('order_id', $order->id)->latest()->lockForUpdate()->first();
+            if (!$payment || $payment->payment_method !== 'QRIS') {
+                return response()->json([
+                    'msg' => 'Tidak ada pembayaran QRIS untuk order ini',
+                ], 404);
+            }
+            if ($payment->status === 'SUCCESS') {
+                return response()->json([
+                    'msg' => 'Pembayaran sudah berhasil, tidak bisa dibatalkan',
+                ], 409);
+            }
+            if ($order->status === 'CANCELLED') {
+                return response()->json([
+                    'msg' => 'Pesanan sudah dibatalkan',
+                ], 200);
+            }
+            $payment->update([
+                'status' => 'CANCELLED',
+            ]);
+            return response()->json([
+                'msg' => 'Pesanan dan Pembayaran QRIS berhasil dibatalkan',
+            ]);
+        });
     }
 }

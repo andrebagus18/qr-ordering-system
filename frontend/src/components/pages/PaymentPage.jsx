@@ -202,6 +202,12 @@ const PaymentPage = () => {
                 <p className="mt-1 text-sm text-muted-foreground">
                   Silakan lakukan pembayaran secara tunai kepada kasir.
                 </p>
+                <Button
+                  className="mt-6 h-12 w-full bg-amber-600 hover:bg-white hover:border-amber-600 hover:text-amber-600 cursor-pointer"
+                  onClick={() => navigate("/menu", { replace: true })}
+                >
+                  Kembali ke Menu
+                </Button>
               </div>
             )}
           </CardContent>
