@@ -288,30 +288,113 @@ class PaymentController extends Controller
         $validated = $request->validate([
             'order_id' => ['required', 'exists:orders,id'],
         ]);
-        return DB::transaction(function () use ($validated) {
-            $order = Order::whereKey($validated['order_id'])->lockForUpdate()->firstOrFail();
-            $payment = Payment::where('order_id', $order->id)->latest()->lockForUpdate()->first();
-            if (!$payment || $payment->payment_method !== 'QRIS') {
-                return response()->json([
-                    'msg' => 'Tidak ada pembayaran QRIS untuk order ini',
-                ], 404);
+
+        $order = Order::findOrFail($validated['order_id']);
+
+        $payment = Payment::where('order_id', $order->id)
+            ->where('payment_method', 'QRIS')
+            ->latest()
+            ->first();
+
+        if (!$payment) {
+            return response()->json([
+                'msg' => 'Pembayaran QRIS tidak ditemukan.',
+            ], 404);
+        }
+
+        if ($payment->status === 'SUCCESS') {
+            return response()->json([
+                'msg' => 'Pembayaran sudah berhasil.',
+            ], 409);
+        }
+
+        if ($order->status === 'CANCELLED') {
+            return response()->json([
+                'msg' => 'Pesanan sudah dibatalkan.',
+            ], 200);
+        }
+
+        if (!$payment->transaction_id) {
+            return response()->json([
+                'msg' => 'ID transaksi Midtrans tidak ditemukan.',
+            ], 409);
+        }
+
+        $baseUrl = config('midtrans.is_production')
+            ? 'https://api.midtrans.com'
+            : 'https://api.sandbox.midtrans.com';
+
+        $auth = Http::withBasicAuth(
+            config('midtrans.server_key'),
+            ''
+        )->acceptJson();
+
+        // Periksa status aktual di Midtrans terlebih dahulu.
+        $statusResponse = $auth->get(
+            "{$baseUrl}/v2/{$order->order_number}/status"
+        );
+
+        if ($statusResponse->failed()) {
+            return response()->json([
+                'msg' => 'Status pembayaran belum dapat diverifikasi.',
+            ], 502);
+        }
+
+        $gatewayStatus = $statusResponse->json('transaction_status');
+
+        if ($gatewayStatus === 'settlement') {
+            return response()->json([
+                'msg' => 'Pembayaran sudah berhasil. Pesanan tidak dibatalkan.',
+            ], 409);
+        }
+
+        if ($gatewayStatus !== 'pending') {
+            return response()->json([
+                'msg' => 'Transaksi tidak lagi berstatus pending.',
+                'gateway_status' => $gatewayStatus,
+            ], 409);
+        }
+
+        // Batalkan transaksi di Midtrans.
+        $cancelResponse = $auth->post(
+            "{$baseUrl}/v2/{$order->order_number}/cancel"
+        );
+
+        if (
+            $cancelResponse->failed() ||
+            $cancelResponse->json('transaction_status') !== 'cancel'
+        ) {
+            return response()->json([
+                'msg' => 'Pembatalan di Midtrans belum berhasil dikonfirmasi.',
+            ], 409);
+        }
+
+        DB::transaction(function () use ($order, $payment) {
+            $lockedOrder = Order::whereKey($order->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $lockedPayment = Payment::whereKey($payment->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            // Callback mungkin sudah memproses pembayaran.
+            if (
+                $lockedPayment->status === 'SUCCESS' ||
+                $lockedOrder->status === 'PROCESSING'
+            ) {
+                return;
             }
-            if ($payment->status === 'SUCCESS') {
-                return response()->json([
-                    'msg' => 'Pembayaran sudah berhasil, tidak bisa dibatalkan',
-                ], 409);
-            }
-            if ($order->status === 'CANCELLED') {
-                return response()->json([
-                    'msg' => 'Pesanan sudah dibatalkan',
-                ], 200);
-            }
-            $payment->update([
+            $lockedPayment->update([
+                'status' => 'FAILED',
+            ]);
+            $lockedOrder->update([
                 'status' => 'CANCELLED',
             ]);
-            return response()->json([
-                'msg' => 'Pesanan dan Pembayaran QRIS berhasil dibatalkan',
-            ]);
         });
+
+        return response()->json([
+            'msg' => 'Pembayaran QRIS dan pesanan dibatalkan.',
+        ]);
     }
 }

@@ -14,18 +14,29 @@ class AuthController extends Controller
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
-            'password' => ['required']
+            'password' => ['required'],
         ]);
-        if (!Auth::attempt($credentials)) {
+
+        $user = \App\Models\User::where(
+            'email',
+            $credentials['email']
+        )->first();
+
+        if (!$user || !Hash::check(
+            $credentials['password'],
+            $user->password
+        )) {
             return response()->json([
-                'msg' > 'Email atau password salah'
+                'msg' => 'Email atau password salah',
             ], 401);
         }
-        $request->session()->regenerate();
+
+        $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
             'msg' => 'Login berhasil',
-            'user' => Auth::user(),
+            'user' => $user,
+            'token' => $token,
         ]);
     }
 
