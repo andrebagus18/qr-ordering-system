@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Midtrans\Config;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -208,7 +209,7 @@ class PaymentController extends Controller
         $transactionStatus = $request->transaction_status;
         if ($transactionStatus === 'settlement') {
             DB::transaction(function () use ($payment) {
-                $payment = Payment::whereKey($payment->id)->lockForUpdate()->first()->firstOrFail();
+                $payment = Payment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
                 $order = Order::whereKey($payment->order_id)->lockForUpdate()->firstOrFail();
                 // jangan proses ulang pembayaran yang sudah sukses
                 if ($payment->status === 'SUCCESS') {
@@ -226,7 +227,7 @@ class PaymentController extends Controller
                     'status' => 'PROCESSING',
                 ]);
             });
-        } elseif ($transactionStatus === 'cancel' || $transactionStatus === 'deny' || $transactionStatus === 'expire') {
+        } elseif (in_array($transactionStatus, ['cancel', 'expire', 'deny'], true)) {
             $payment->update([
                 'status' => 'FAILED',
             ]);
@@ -348,6 +349,21 @@ class PaymentController extends Controller
             ], 409);
         }
 
+        if (in_array($gatewayStatus, ['expire', 'cancel'], true)) {
+            DB::transaction(function () use ($order, $payment) {
+                $payment->update([
+                    'status' => 'FAILED',
+                ]);
+                $order->update([
+                    'status' => 'CANCELLED',
+                ]);
+            });
+            return response()->json([
+                'msg' => 'Pembayaran QRIS dan pesanan dibatalkan.',
+                'gateway_status' => $gatewayStatus,
+            ], 200);
+        }
+
         if ($gatewayStatus !== 'pending') {
             return response()->json([
                 'msg' => 'Transaksi tidak lagi berstatus pending.',
@@ -357,8 +373,17 @@ class PaymentController extends Controller
 
         // Batalkan transaksi di Midtrans.
         $cancelResponse = $auth->post(
-            "{$baseUrl}/v2/{$order->order_number}/cancel"
+            "{$baseUrl}/v2/{$payment->transaction_id}/cancel"
         );
+        Log::info('Midtrans cancel debug', [
+            'transaction_id' => $payment->transaction_id,
+            'http_status' => $cancelResponse->status(),
+            'response' => $cancelResponse->body(),
+        ]);
+        // return response()->json([
+        //     'http_status' => $cancelResponse->status(),
+        //     'response' => $cancelResponse->json(),
+        // ], 200);
 
         if (
             $cancelResponse->failed() ||

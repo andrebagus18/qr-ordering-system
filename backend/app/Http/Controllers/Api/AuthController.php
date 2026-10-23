@@ -31,8 +31,12 @@ class AuthController extends Controller
             ], 401);
         }
 
-        Auth::login($user);
-        $request->session()->regenerate();
+        if ($request->hasSession()) {
+            Auth::guard('web')->login($user);
+            $request->session()->regenerate();
+        }
+
+        // Auth::login($user);
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
