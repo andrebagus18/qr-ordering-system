@@ -24,7 +24,7 @@ class PaymentController extends Controller
             'payment_method' => ['required', 'in:CASH,QRIS'],
         ]);
         $order = Order::findOrFail($validated['order_id']);
-        $existingPayment = Payment::where('order_id', $order->id)->latest()->first();
+        $existingPayment = Payment::where('order_id', $order->id)->latest('id')->first();
         if ($existingPayment) {
             if ($existingPayment->status === 'SUCCESS') {
                 return response()->json([
@@ -58,29 +58,18 @@ class PaymentController extends Controller
         $amount = $order->total_amount; // ambil total dari database setelah order dibuat
         // if ($order->payment)
         if ($validated['payment_method'] === 'CASH') {
-            if ($existingPayment && $existingPayment->status === 'FAILED') {
-                $payment = $existingPayment;
-                $payment->update([
-                    'payment_method' => 'CASH',
-                    'amount' => $amount,
-                    'transaction_id' => null,
-                    'qr_code' => null,
-                    'paid_at' => null,
-                    'status' => 'PENDING',
-                ]);
-            } else {
-                $payment = Payment::create([
-                    'order_id' => $order->id,
-                    'payment_method' => 'CASH',
-                    'amount' => $amount,
-                    'transaction_id' => null,
-                    'status' => 'PENDING',
-                ]);
-            }
+            $payment = Payment::create([
+                'order_id' => $order->id,
+                'payment_method' => 'CASH',
+                'amount' => $amount,
+                'transaction_id' => null,
+                'status' => 'PENDING',
+            ]);
+
             return response()->json([
                 'msg' => 'CASH berhasil dibuat',
-                'data' => $payment
-            ]);
+                'data' => $payment,
+            ], 201);
         } elseif ($validated['payment_method'] === 'QRIS') {
             $response = Http::withBasicAuth(config('midtrans.server_key'), '')->post('https://api.sandbox.midtrans.com/v2/charge', [
                 'payment_type' => 'qris',
@@ -101,28 +90,15 @@ class PaymentController extends Controller
             }
             $midtrans = $response->json();
             $qrCode = collect($midtrans['actions'] ?? [])->firstWhere('name', 'generate-qr-code')['url'] ?? null;
-            if ($existingPayment && $existingPayment->status === 'FAILED') {
-                $payment = $existingPayment;
-                $payment->update([
-                    'payment_method' => 'QRIS',
-                    'amount' => $amount,
-                    'transaction_id' => $midtrans['transaction_id'] ?? null,
-                    'qr_code' => $qrCode,
-                    'status' => 'PENDING',
-                    'paid_at' => null,
-                    'expires_at' => now()->addMinutes(10),
-                ]);
-            } else {
-                $payment = Payment::create([
-                    'order_id' => $order->id,
-                    'payment_method' => 'QRIS',
-                    'amount' => $amount,
-                    'transaction_id' => $midtrans['transaction_id'] ?? null,
-                    'qr_code' => $qrCode,
-                    'status' => 'PENDING',
-                    'expires_at' => now()->addMinutes(10),
-                ]);
-            }
+            $payment = Payment::create([
+                'order_id' => $order->id,
+                'payment_method' => 'QRIS',
+                'amount' => $amount,
+                'transaction_id' => $midtrans['transaction_id'] ?? null,
+                'qr_code' => $qrCode,
+                'status' => 'PENDING',
+                'expires_at' => now()->addMinutes(10),
+            ]);
 
             return response()->json(
                 [
