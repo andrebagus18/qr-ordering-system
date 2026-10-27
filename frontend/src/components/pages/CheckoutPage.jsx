@@ -39,7 +39,9 @@ const CheckoutPage = () => {
         cartItems,
         customerName,
         orderType,
+        orderId: sessionStorage.getItem("orderId"),
       });
+      sessionStorage.setItem("orderId", orderResponse.data.id);
       const paymentResponse = await submitPayment({
         order_id: orderResponse.data.id,
         payment_method: paymentMethod,

@@ -22,6 +22,7 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
+    Route::put('/orders/{order}', [OrderController::class, 'update']);
 
     Route::get('/orders/item/{order}', [OrderItemController::class, 'show']);
     Route::put('/payments/{payment}', [PaymentController::class, 'update']);
@@ -48,3 +49,4 @@ Route::middleware('auth:sanctum')->group(function () {});
 Route::post('/payments/notification', [PaymentController::class, 'notification']);
 Route::get('/payments/{id}/status', [PaymentController::class, 'getPaymentStatus']);
 Route::post('/payments/cancel', [PaymentController::class, 'cancel']);
+Route::get('/payments/{id}/sync-status', [PaymentController::class, 'syncStatus']);

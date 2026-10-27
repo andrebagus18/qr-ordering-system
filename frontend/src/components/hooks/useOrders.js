@@ -1,5 +1,5 @@
 import { showError } from "@/lib/alert";
-import { createOrder } from "../../services/order.services";
+import { createOrder, updateOrder } from "../../services/order.services";
 import { useState } from "react";
 
 export function useOrders() {
@@ -21,7 +21,12 @@ export function useOrders() {
     }
   };
 
-  const handleSubmit = async ({ cartItems, orderType, customerName }) => {
+  const handleSubmit = async ({
+    cartItems,
+    orderType,
+    customerName,
+    orderId,
+  }) => {
     const payload = {
       table_id: 1,
       customer_name: customerName,
@@ -31,14 +36,21 @@ export function useOrders() {
         quantity: item.quantity,
       })),
     };
+
     try {
       setLoading(true);
       setError(null);
-      const result = await create(payload);
+
+      const result = orderId
+        ? await updateOrder(orderId, payload)
+        : await createOrder(payload);
+
       setOrder(result.data);
       return result;
     } catch (error) {
-      showError(error.response?.data?.msg || "Gagal membuat order");
+      setError(error.response?.data?.msg || "Gagal menyimpan order");
+      showError(error.response?.data?.msg || "Gagal menyimpan order");
+      throw error;
     } finally {
       setLoading(false);
     }

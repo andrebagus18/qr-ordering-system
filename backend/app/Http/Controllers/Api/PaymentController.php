@@ -260,6 +260,56 @@ class PaymentController extends Controller
         ]);
     }
 
+    public function syncStatus($id)
+    {
+        $payment = Payment::with('order')->findOrFail($id);
+
+        if (!$payment->transaction_id) {
+            return response()->json([
+                'msg' => 'Payment tidak memiliki transaksi Midtrans.',
+            ], 422);
+        }
+
+        $response = Http::withBasicAuth(
+            config('midtrans.server_key'),
+            ''
+        )->get(
+            'https://api.sandbox.midtrans.com/v2/'
+                . $payment->order->order_number
+                . '/status'
+        );
+
+        if ($response->failed()) {
+            return response()->json([
+                'msg' => 'Gagal memeriksa status Midtrans.',
+                'error' => $response->json(),
+            ], 502);
+        }
+
+        $gatewayStatus = $response->json('transaction_status');
+
+        if ($gatewayStatus === 'settlement') {
+            $payment->update([
+                'status' => 'SUCCESS',
+                'paid_at' => now(),
+            ]);
+
+            $payment->order->update([
+                'status' => 'PROCESSING',
+            ]);
+        } elseif (in_array($gatewayStatus, ['expire', 'cancel', 'deny'], true)) {
+            $payment->update([
+                'status' => 'FAILED',
+            ]);
+        }
+
+        return response()->json([
+            'msg' => 'Status pembayaran berhasil diperiksa.',
+            'gateway_status' => $gatewayStatus,
+            'payment_status' => $payment->fresh()->status,
+        ]);
+    }
+
     public function cancel(Request $request)
     {
         $validated = $request->validate([
