@@ -12,8 +12,16 @@ import { useOrders } from "../hooks/useOrders";
 import { usePayment } from "../hooks/usePayments";
 
 const CheckoutPage = () => {
-  const { loading: loadingOrder, handleSubmit: submitOrder } = useOrders();
-  const { loading: loadingPayment, create: submitPayment } = usePayment();
+  const {
+    loading: loadingOrder,
+    handleSubmit: submitOrder,
+    getOrder,
+  } = useOrders();
+  const {
+    loading: loadingPayment,
+    create: submitPayment,
+    confirmCancel,
+  } = usePayment();
   const [customerName, setCustomerName] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [errors, setErrors] = useState({});
@@ -24,6 +32,7 @@ const CheckoutPage = () => {
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
+
   const handleSubmit = async () => {
     const newErrors = {};
     if (!customerName.trim()) {
@@ -35,12 +44,56 @@ const CheckoutPage = () => {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
     try {
-      const orderResponse = await submitOrder({
-        cartItems,
-        customerName,
-        orderType,
-        orderId: sessionStorage.getItem("orderId"),
-      });
+      const orderId =
+        location.state?.orderId || sessionStorage.getItem("orderId");
+      let orderResponse;
+      if (orderId) {
+        const order = await getOrder(orderId);
+        if (order.payments?.some((payment) => payment.status === "SUCCESS")) {
+          setErrors({
+            checkout: "Order ini sudah dibayar. Silakan buat pesanan baru.",
+          });
+          return;
+        }
+
+        const pendingPayment = order.payments
+          ?.filter((payment) => payment.status === "PENDING")
+          .sort((a, b) => b.id - a.id)[0];
+
+        if (pendingPayment) {
+          const result = await confirmCancel(pendingPayment.id);
+
+          // Customer ingin kembali ke QRIS lama.
+          if (result === "BACK_TO_OLD_PAYMENT") {
+            navigate("/payments", {
+              state: {
+                order,
+                payment: pendingPayment,
+                paymentMethod: pendingPayment.payment_method,
+              },
+            });
+
+            return;
+          }
+
+          // Pembatalan gagal atau proses dihentikan.
+          if (result !== "CANCELLED") {
+            return;
+          }
+        }
+        orderResponse = await submitOrder([
+          cartItems,
+          customerName,
+          orderType,
+          orderId,
+        ]);
+      } else {
+        orderResponse = await submitOrder({
+          cartItems,
+          customerName,
+          orderType,
+        });
+      }
       sessionStorage.setItem("orderId", orderResponse.data.id);
       const paymentResponse = await submitPayment({
         order_id: orderResponse.data.id,

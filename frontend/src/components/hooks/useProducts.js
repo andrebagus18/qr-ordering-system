@@ -62,6 +62,7 @@ export function useProducts() {
       state: {
         cartItems,
         orderType,
+        orderId: sessionStorage.getItem("orderId"),
       },
     });
   };
