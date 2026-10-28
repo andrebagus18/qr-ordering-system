@@ -41,16 +41,17 @@ export function useOrders() {
     customerName,
     orderId,
   }) => {
-    if (!Array.isArray(cartItems) || cartItems.length === 0) {
-      showError("Keranjang kosong atau data menu tidak tersedia.");
-      throw new Error("cartItems tidak valid");
-    }
-    console.log("data masuk", {
+    console.log("data masuk useOrder", {
       cartItems,
       orderId,
       orderType,
       customerName,
     });
+    if (!Array.isArray(cartItems) || cartItems.length === 0) {
+      showError("Keranjang kosong atau data menu tidak tersedia.");
+      throw new Error("cartItems tidak valid");
+    }
+
     const payload = {
       table_id: 1,
       customer_name: customerName,

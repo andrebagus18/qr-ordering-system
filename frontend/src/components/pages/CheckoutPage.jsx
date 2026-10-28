@@ -81,12 +81,18 @@ const CheckoutPage = () => {
             return;
           }
         }
-        orderResponse = await submitOrder([
+        console.log("data masuk submit", {
+          cartItems,
+          orderId,
+          orderType,
+          customerName,
+        });
+        orderResponse = await submitOrder({
           cartItems,
           customerName,
           orderType,
           orderId,
-        ]);
+        });
       } else {
         orderResponse = await submitOrder({
           cartItems,

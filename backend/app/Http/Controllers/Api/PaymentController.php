@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Midtrans\Config;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
@@ -71,10 +72,11 @@ class PaymentController extends Controller
                 'data' => $payment,
             ], 201);
         } elseif ($validated['payment_method'] === 'QRIS') {
+            $midtransOrderId = $order->order_number . '-' . Str::uuid();
             $response = Http::withBasicAuth(config('midtrans.server_key'), '')->post('https://api.sandbox.midtrans.com/v2/charge', [
                 'payment_type' => 'qris',
                 'transaction_details' => [
-                    'order_id' => $order->order_number,
+                    'order_id' => $midtransOrderId,
                     'gross_amount' => (int) $amount,
                 ],
                 'qris' => [
@@ -92,6 +94,7 @@ class PaymentController extends Controller
             $qrCode = collect($midtrans['actions'] ?? [])->firstWhere('name', 'generate-qr-code')['url'] ?? null;
             $payment = Payment::create([
                 'order_id' => $order->id,
+                'midtrans_order_id' => $midtransOrderId,
                 'payment_method' => 'QRIS',
                 'amount' => $amount,
                 'transaction_id' => $midtrans['transaction_id'] ?? null,
@@ -151,7 +154,7 @@ class PaymentController extends Controller
         $grossAmount = $request->gross_amount;
         $signatureKey = $request->signature_key;
 
-        //verofokasi signature key benar2 dari midtrans
+        //verifikasi signature key benar2 dari midtrans
         $expectedSignature = hash('sha512', $orderId . $statusCode . $grossAmount . config('midtrans.server_key'));
         if ($signatureKey !== $expectedSignature) {
             return response()->json([
@@ -160,16 +163,11 @@ class PaymentController extends Controller
         }
 
         // cari payment berdasarkan transaction_id
-        $payment = Payment::where('transaction_id', $request->transaction_id)->first();
+        $payment = Payment::where('midtrans_order_id', $orderId)->first();
         if (!$payment) {
             return response()->json([
                 'msg' => 'Pembayaran tidak ditemukan',
             ], 404);
-        }
-        if ($payment->order->order_number !== $orderId) {
-            return response()->json([
-                'msg' => 'Order ID tidak sesuai',
-            ], 422);
         }
         if ((float) $payment->amount !== (float) $grossAmount) {
             return response()->json([
@@ -183,7 +181,7 @@ class PaymentController extends Controller
         }
 
         $transactionStatus = $request->transaction_status;
-        if ($transactionStatus === 'settlement') {
+        if (in_array($transactionStatus, ['settlement', 'capture'], true)) {
             DB::transaction(function () use ($payment) {
                 $payment = Payment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
                 $order = Order::whereKey($payment->order_id)->lockForUpdate()->firstOrFail();
@@ -264,9 +262,15 @@ class PaymentController extends Controller
     {
         $payment = Payment::with('order')->findOrFail($id);
 
-        if (!$payment->transaction_id) {
+        if ($payment->payment_method !== 'QRIS') {
             return response()->json([
-                'msg' => 'Payment tidak memiliki transaksi Midtrans.',
+                'msg' => 'Status sinkronisasi hanya tersedia untuk QRIS.',
+            ], 422);
+        }
+
+        if (!$payment->midtrans_order_id) {
+            return response()->json([
+                'msg' => 'ID transaksi Midtrans tidak ditemukan.',
             ], 422);
         }
 
@@ -275,7 +279,7 @@ class PaymentController extends Controller
             ''
         )->get(
             'https://api.sandbox.midtrans.com/v2/'
-                . $payment->order->order_number
+                . $payment->midtrans_order_id
                 . '/status'
         );
 
@@ -288,7 +292,7 @@ class PaymentController extends Controller
 
         $gatewayStatus = $response->json('transaction_status');
 
-        if ($gatewayStatus === 'settlement') {
+        if (in_array($gatewayStatus, ['settlement', 'capture'], true)) {
             $payment->update([
                 'status' => 'SUCCESS',
                 'paid_at' => now(),
@@ -301,70 +305,83 @@ class PaymentController extends Controller
             $payment->update([
                 'status' => 'FAILED',
             ]);
+        } elseif ($gatewayStatus === 'pending') {
+            $payment->update([
+                'status' => 'PENDING',
+            ]);
         }
 
         return response()->json([
             'msg' => 'Status pembayaran berhasil diperiksa.',
-            'gateway_status' => $gatewayStatus,
-            'payment_status' => $payment->fresh()->status,
+            'data' => [
+                'payment' => $payment->fresh(),
+                'gateway_status' => $gatewayStatus,
+            ],
         ]);
     }
 
     public function cancel($id)
     {
         $payment = Payment::with('order')->findOrFail($id);
-
         if ($payment->status !== 'PENDING') {
             return response()->json([
                 'msg' => 'Pembayaran tidak lagi berstatus pending.',
                 'payment_status' => $payment->status,
             ], 409);
         }
-
         if (
             $payment->payment_method !== 'QRIS' ||
             !$payment->transaction_id
         ) {
             return response()->json([
-                'msg' => 'Pembayaran ini tidak dapat dibatalkan melalui QRIS.',
+                'msg' => 'Data transaksi QRIS tidak lengkap.',
             ], 422);
         }
 
-        $order = $payment->order;
+        $midtransOrderId = $payment->midtrans_order_id ?: $payment->order->order_number;
+        \Illuminate\Support\Facades\Log::info('Memulai pembatalan Midtrans', [
+            'payment_id' => $payment->id,
+            'midtrans_order_id' => $midtransOrderId,
+            'saved_midtrans_order_id' => $payment->midtrans_order_id,
+        ]);
 
-        // Periksa status transaksi di Midtrans.
+        // Periksa status transaksi yang tepat di Midtrans.
         $response = Http::withBasicAuth(
             config('midtrans.server_key'),
             ''
         )->get(
             'https://api.sandbox.midtrans.com/v2/'
-                . $order->order_number
+                . $midtransOrderId
                 . '/status'
         );
-
         if ($response->failed()) {
             return response()->json([
                 'msg' => 'Gagal memeriksa status transaksi Midtrans.',
+                'gateway_response' => $response->json(),
             ], 502);
         }
-
         $gatewayStatus = $response->json('transaction_status');
-
         if (in_array($gatewayStatus, ['settlement', 'capture'], true)) {
+            $payment->update([
+                'status' => 'SUCCESS',
+                'paid_at' => now(),
+            ]);
+            $payment->order->update([
+                'status' => 'PROCESSING',
+            ]);
             return response()->json([
                 'msg' => 'Pembayaran sudah berhasil. Order tidak dapat diubah.',
             ], 409);
         }
-
         if (in_array($gatewayStatus, ['expire', 'cancel', 'deny'], true)) {
-            $payment->update(['status' => 'FAILED']);
-
+            $payment->update([
+                'status' => 'FAILED',
+            ]);
             return response()->json([
                 'msg' => 'Pembayaran lama sudah tidak aktif.',
                 'payment_status' => 'FAILED',
             ]);
         }
-
         if ($gatewayStatus !== 'pending') {
             return response()->json([
                 'msg' => 'Status transaksi belum aman untuk pembatalan.',
@@ -378,43 +395,66 @@ class PaymentController extends Controller
             ''
         )->post(
             'https://api.sandbox.midtrans.com/v2/'
-                . $order->order_number
+                . $midtransOrderId
                 . '/cancel'
         );
-
         if ($cancelResponse->failed()) {
+            \Illuminate\Support\Facades\Log::warning(
+                'Midtrans cancel gagal',
+                [
+                    'payment_id' => $payment->id,
+                    'midtrans_order_id' => $midtransOrderId,
+                    'http_status' => $cancelResponse->status(),
+                    'response' => $cancelResponse->json(),
+                ]
+            );
             return response()->json([
-                'msg' => 'Midtrans belum mengonfirmasi pembatalan. Order tidak diubah.',
-            ], 409);
+                'msg' => 'Midtrans gagal membatalkan pembayaran. Order tidak diubah.',
+                'retryable' => $cancelResponse->serverError(),
+            ], $cancelResponse->serverError() ? 503 : 409);
         }
+        \Illuminate\Support\Facades\Log::info('Respons pembatalan Midtrans', [
+            'payment_id' => $payment->id,
+            'http_status' => $cancelResponse->status(),
+            'response' => $cancelResponse->json(),
+        ]);
 
-        // Periksa kembali status transaksi setelah permintaan pembatalan.
+        // Periksa kembali status transaksi setelah pembatalan.
         $verifyResponse = Http::withBasicAuth(
             config('midtrans.server_key'),
             ''
         )->get(
             'https://api.sandbox.midtrans.com/v2/'
-                . $order->order_number
+                . $midtransOrderId
                 . '/status'
         );
-
         if ($verifyResponse->failed()) {
             return response()->json([
                 'msg' => 'Pembatalan diminta, tetapi status akhirnya belum dapat diverifikasi.',
             ], 502);
         }
-
         $finalStatus = $verifyResponse->json('transaction_status');
-
+        if (in_array($finalStatus, ['settlement', 'capture'], true)) {
+            $payment->update([
+                'status' => 'SUCCESS',
+                'paid_at' => now(),
+            ]);
+            $payment->order->update([
+                'status' => 'PROCESSING',
+            ]);
+            return response()->json([
+                'msg' => 'Pembayaran ternyata berhasil. Order tidak dapat diubah.',
+            ], 409);
+        }
         if (!in_array($finalStatus, ['expire', 'cancel', 'deny'], true)) {
             return response()->json([
                 'msg' => 'Pembayaran belum dipastikan berakhir. Order tidak diubah.',
                 'gateway_status' => $finalStatus,
             ], 409);
         }
-
-        $payment->update(['status' => 'FAILED']);
-
+        $payment->update([
+            'status' => 'FAILED',
+        ]);
         return response()->json([
             'msg' => 'Pembayaran lama berhasil diakhiri.',
             'payment_status' => 'FAILED',

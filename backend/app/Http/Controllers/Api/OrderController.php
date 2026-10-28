@@ -122,7 +122,19 @@ class OrderController extends Controller
                 }
 
                 $gatewayStatus = $response->json('transaction_status');
-
+                if (in_array($gatewayStatus, ['settlement', 'capture'], true)) {
+                    $pendingPayment->update([
+                        'status' => 'SUCCESS',
+                        'paid_at' => now(),
+                    ]);
+                    $order->update([
+                        'status' => 'PROCESSING',
+                    ]);
+                    return response()->json([
+                        'msg' => 'Pembayaran sudah berhasil. Order tidak dapat diubah.',
+                        'gateway_status' => $gatewayStatus,
+                    ], 409);
+                }
                 if (in_array($gatewayStatus, ['expire', 'cancel', 'deny'], true)) {
                     $pendingPayment->update([
                         'status' => 'FAILED',
