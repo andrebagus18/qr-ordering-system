@@ -395,7 +395,7 @@ class PaymentController extends Controller
             ''
         )->post(
             'https://api.sandbox.midtrans.com/v2/'
-                . $payment->transaction_id
+                . $midtransOrderId
                 . '/cancel'
         );
         if ($cancelResponse->failed()) {
