@@ -331,14 +331,14 @@ class PaymentController extends Controller
         }
         if (
             $payment->payment_method !== 'QRIS' ||
-            !$payment->transaction_id
+            !$payment->transaction_id || !$payment->midtrans_order_id
         ) {
             return response()->json([
                 'msg' => 'Data transaksi QRIS tidak lengkap.',
             ], 422);
         }
 
-        $midtransOrderId = $payment->midtrans_order_id ?: $payment->order->order_number;
+        $midtransOrderId = $payment->midtrans_order_id;
         \Illuminate\Support\Facades\Log::info('Memulai pembatalan Midtrans', [
             'payment_id' => $payment->id,
             'midtrans_order_id' => $midtransOrderId,
@@ -395,7 +395,7 @@ class PaymentController extends Controller
             ''
         )->post(
             'https://api.sandbox.midtrans.com/v2/'
-                . $midtransOrderId
+                . $payment->transaction_id
                 . '/cancel'
         );
         if ($cancelResponse->failed()) {
@@ -403,9 +403,10 @@ class PaymentController extends Controller
                 'Midtrans cancel gagal',
                 [
                     'payment_id' => $payment->id,
-                    'midtrans_order_id' => $midtransOrderId,
+                    'transaction_id' => $payment->transaction_id,
+                    'midtrans_order_id' => $payment->midtrans_order_id,
                     'http_status' => $cancelResponse->status(),
-                    'response' => $cancelResponse->json(),
+                    'response_body' => $cancelResponse->body(),
                 ]
             );
             return response()->json([
