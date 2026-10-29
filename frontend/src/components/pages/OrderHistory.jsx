@@ -1,88 +1,12 @@
 import { useState } from "react";
 import { ArrowLeft, ChevronRight } from "lucide-react";
-import { formatRupiah } from "@/lib/utils";
+import { formatRupiah, getPaymentLabel, getPaymentColor } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useOrders } from "../hooks/useOrders";
 
-const orders = [
-  {
-    id: 1,
-    orderNumber: "ORD000123",
-    outlet: "Mie Gacoan Mojokerto - Pemuda",
-    total: 17000,
-    totalItems: 2,
-    orderType: "DINE_IN",
-    paymentMethod: "CASH",
-    paymentStatus: "PENDING",
-    orderStatus: "PENDING_PAYMENT",
-    createdAt: "16 Okt 2026, 22:31",
-  },
-  {
-    id: 2,
-    orderNumber: "ORD000124",
-    outlet: "Mie Gacoan Mojokerto - Pemuda",
-    total: 17000,
-    totalItems: 2,
-    orderType: "DINE_IN",
-    paymentMethod: "CASH",
-    paymentStatus: "PENDING",
-    orderStatus: "PENDING_PAYMENT",
-    createdAt: "16 Okt 2026, 22:30",
-  },
-  {
-    id: 3,
-    orderNumber: "ORD000125",
-    outlet: "Mie Gacoan - Mojokerto",
-    total: 53000,
-    totalItems: 3,
-    orderType: "TAKE_AWAY",
-    paymentMethod: "QRIS",
-    paymentStatus: "SUCCESS",
-    orderStatus: "COMPLETED",
-    createdAt: "2 Agu 2026, 20:34",
-  },
-];
-
-function getPaymentLabel(order) {
-  if (order.paymentStatus === "SUCCESS") {
-    return "Sudah Dibayar";
-  }
-
-  if (order.paymentStatus === "FAILED") {
-    return "Pembayaran Gagal";
-  }
-
-  if (order.paymentStatus === "EXPIRED") {
-    return "Kedaluwarsa";
-  }
-
-  if (order.paymentMethod === "CASH") {
-    return "Belum Dibayar";
-  }
-
-  return "Menunggu Pembayaran";
-}
-
-function getPaymentColor(order) {
-  if (order.paymentStatus === "SUCCESS") {
-    return "bg-green-100 text-green-700";
-  }
-
-  if (order.paymentStatus === "FAILED" || order.paymentStatus === "EXPIRED") {
-    return "bg-red-100 text-red-700";
-  }
-
-  return "bg-slate-500 text-white";
-}
-
-export default function OrderHistory({ onOrderClick, onOrderAgain }) {
+function OrderHistory() {
+  const { orders, orderHistory, loading, error } = useOrders();
   const navigate = useNavigate();
-  const completedOrders = orders.filter(
-    (order) => order.orderStatus === "COMPLETED",
-  );
-
-  const pendingOrders = orders.filter(
-    (order) => order.orderStatus !== "COMPLETED",
-  );
 
   function handleOrderClick(order) {
     if (onOrderClick) {
@@ -112,10 +36,8 @@ export default function OrderHistory({ onOrderClick, onOrderAgain }) {
         >
           <ArrowLeft size={28} strokeWidth={2} />
         </button>
-
         <h1 className="text-xl font-bold">Riwayat</h1>
       </header>
-
       {/* Tabs */}
       {/* <div className="sticky top-[76px] z-10 grid grid-cols-2 border-b border-slate-100 bg-white px-4">
         <button
@@ -150,85 +72,84 @@ export default function OrderHistory({ onOrderClick, onOrderAgain }) {
       </div> */}
 
       {/* Content */}
-      <main className="mx-auto max-w-2xl space-y-5 px-4 py-7">
-        {orders.length > 0 ? (
-          orders.map((order) => {
-            const isCompleted = order.orderStatus === "COMPLETED";
+      <main className="mx-auto max-w-2xl space-y-4 px-4 py-7">
+        {loading ? (
+          <p className="py-10 text-center text-slate-500">
+            Memuat riwayat pesanan...
+          </p>
+        ) : error ? (
+          <p className="py-10 text-center text-red-500">{error}</p>
+        ) : orders.length > 0 ? (
+          orders.map((item) => {
+            const isCompleted = item.status === "COMPLETED";
             return (
               <article
-                key={order.id}
+                key={item.id}
                 className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm"
               >
                 {/* Order information */}
                 <button
                   type="button"
-                  onClick={() => handleOrderClick(order)}
-                  className="w-full p-5 text-left transition hover:bg-slate-50/70"
+                  onClick={() => handleOrderClick()}
+                  className="w-full px-3 py-4 text-left transition hover:bg-slate-50/70"
                 >
                   <div className="flex items-start gap-3">
                     {/* Outlet logo placeholder */}
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-indigo-950 text-center text-[10px] font-extrabold leading-tight text-white">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-amber-600/30 border border-amber-600 text-center text-[10px] font-extrabold leading-tight text-amber-600">
                       <span>
-                        MIE
+                        KOPI.
                         <br />
-                        GACOAN
+                        kita
                       </span>
                     </div>
-
                     <div className="min-w-0 flex-1">
                       {!isCompleted && (
                         <span
-                          className={`mb-2 inline-flex rounded-md px-3 py-1 text-sm font-semibold tracking-wide ${getPaymentColor(
-                            order,
+                          className={`mb-1 inline-flex rounded-md px-3 py-1 text-xs font-semibold tracking-wide ${getPaymentColor(
+                            item,
                           )}`}
                         >
-                          {getPaymentLabel(order)}
+                          {getPaymentLabel(item)}
                         </span>
                       )}
-
-                      <h2 className="text-[18px] font-bold leading-snug text-slate-800">
-                        {order.outlet}
+                      <h2 className="text-[16px] font-bold text-slate-800">
+                        Kopi Kita - Nusantara
                       </h2>
-
-                      <p className="mt-1 text-base text-slate-800">
-                        {formatRupiah(order.total)}{" "}
+                      <p className="text-[15px] text-base text-slate-800">
+                        {formatRupiah(item.price)}{" "}
                         <span className="text-slate-500">
-                          ({order.totalItems} item)
+                          ({item.quantity} item)
                         </span>
                       </p>
-
-                      <p className="mt-1 break-all text-base font-medium text-slate-800">
-                        #{order.orderNumber}
+                      <p className="text-[15px] break-all text-base text-slate-800">
+                        #{item.order.order_number}
                       </p>
                     </div>
-
                     <ChevronRight
                       size={30}
                       strokeWidth={1.8}
-                      className="mt-12 shrink-0 text-black"
+                      className="mt-12 shrink-0 text-black cursor-pointer"
                     />
                   </div>
                 </button>
 
                 {/* Divider */}
-                <div className="mx-5 border-t border-slate-200" />
+                <div className="mx-4 border-t border-slate-200" />
 
                 {/* Order footer */}
-                <div className="flex items-center justify-between gap-3 p-5">
+                <div className="flex items-center justify-between p-4 pt-2">
                   <div className="min-w-0">
-                    <p className="font-semibold text-amber-600">
-                      {order.orderType === "DINE_IN"
+                    <p className="font-semibold text-amber-600 text-[15px]">
+                      {item.order_type === "DINE-IN"
                         ? "Makan di tempat"
                         : "Dibawa Pulang"}
                     </p>
 
-                    <p className="mt-1 text-sm text-slate-600">
-                      {order.createdAt}
-                    </p>
+                    <p className="text-xs text-slate-800">{item.createdAt}</p>
 
                     {!isCompleted && (
-                      <p className="mt-1 text-xs text-slate-500">
-                        {order.paymentMethod === "CASH"
+                      <p className="text-xs text-slate-500">
+                        {item.payment_method === "CASH"
                           ? "Pembayaran tunai"
                           : "Pembayaran QRIS"}
                       </p>
@@ -238,8 +159,8 @@ export default function OrderHistory({ onOrderClick, onOrderAgain }) {
                   {isCompleted && (
                     <button
                       type="button"
-                      onClick={() => handleOrderAgain(order)}
-                      className="shrink-0 rounded-xl bg-pink-500 px-5 py-3 font-semibold text-white transition hover:bg-pink-600 active:scale-95"
+                      onClick={() => handleOrderAgain()}
+                      className="shrink-0 rounded-md bg-amber-600/30 border border-amber-600 px-5 py-1 text-[15px] font-semibold text-slate-800 hover:text-white transition hover:bg-amber-600 active:scale-95 cursor-pointer"
                     >
                       Pesan Lagi
                     </button>
@@ -258,9 +179,9 @@ export default function OrderHistory({ onOrderClick, onOrderAgain }) {
 
 function EmptyState({ message }) {
   return (
-    <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
+    <div className="flex flex-col items-center justify-center text-center">
       <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-3xl">
-        🍜
+        🧑‍🍳
       </div>
 
       <p className="font-semibold text-slate-700">{message}</p>
@@ -271,3 +192,5 @@ function EmptyState({ message }) {
     </div>
   );
 }
+
+export default OrderHistory;

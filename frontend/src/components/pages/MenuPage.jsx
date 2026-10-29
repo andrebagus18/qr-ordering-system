@@ -25,7 +25,6 @@ const MenuPage = () => {
     setCartOpen,
   } = useProducts();
   const [activeCategory, setActiveCategory] = useState("");
-
   const handleClickCategory = (category) => {
     const section = document.getElementById(`category-${category}`);
     if (!section) return;

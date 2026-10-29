@@ -27,7 +27,7 @@ const CustomerLayout = ({
         {children}
       </main>
 
-      <CartDrawer
+      {/* <CartDrawer
         open={cartOpen}
         onOpenChange={onCartOpenChange}
         items={cartItems}
@@ -35,7 +35,7 @@ const CustomerLayout = ({
         onDecrease={onDecrease}
         onRemove={onRemove}
         onCheckout={onCheckout}
-      />
+      /> */}
     </div>
   );
 };

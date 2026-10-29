@@ -3,6 +3,7 @@ import {
   createOrder,
   updateOrder,
   showOrder,
+  getOrderHistory,
 } from "../../services/order.services";
 import { useState } from "react";
 
@@ -10,6 +11,7 @@ export function useOrders() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [orders, setOrders] = useState([]);
 
   const create = async (data) => {
     try {
@@ -35,18 +37,25 @@ export function useOrders() {
     }
   };
 
+  const orderHistory = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getOrderHistory();
+      setOrders(response.data);
+    } catch (error) {
+      showError(error.response?.data?.msg || "Gagal mengambil riwayat pesanan");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async ({
     cartItems,
     orderType,
     customerName,
     orderId,
   }) => {
-    console.log("data masuk useOrder", {
-      cartItems,
-      orderId,
-      orderType,
-      customerName,
-    });
     if (!Array.isArray(cartItems) || cartItems.length === 0) {
       showError("Keranjang kosong atau data menu tidak tersedia.");
       throw new Error("cartItems tidak valid");
@@ -87,5 +96,7 @@ export function useOrders() {
     error,
     handleSubmit,
     getOrder,
+    orders,
+    orderHistory,
   };
 }

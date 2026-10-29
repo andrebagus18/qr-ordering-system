@@ -37,11 +37,11 @@ const Header = ({ cartCount = 0, onCartClick }) => {
             <ClipboardList
               className={scrolled ? "text-amber-600" : "text-black"}
             />
-            {cartCount > 0 && (
+            {/* {cartCount > 0 && (
               <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center bg-red-500 text-white rounded-full text-xs">
                 {cartCount}
               </span>
-            )}
+            )} */}
           </Button>
         </div>
       </header>
