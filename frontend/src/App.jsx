@@ -3,6 +3,7 @@ import LoginPage from "./components/pages/LoginPage";
 import MenuPage from "./components/pages/MenuPage";
 import CheckoutPage from "./components/pages/CheckoutPage";
 import PaymentPage from "./components/pages/PaymentPage";
+import OrderHistory from "./components/pages/OrderHistory";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/menu" element={<MenuPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/payments" element={<PaymentPage />} />
+        <Route path="/history" element={<OrderHistory />} />
       </Routes>
     </BrowserRouter>
   );

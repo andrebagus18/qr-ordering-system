@@ -17,6 +17,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,9 +52,18 @@ const LoginPage = () => {
                 type="email"
                 placeholder="admin@os.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrors((prev) => ({
+                    ...prev,
+                    email: "",
+                  }));
+                }}
                 required
               />
+              {errors.email && (
+                <p className="mt-1 text-red-500 text-sm">errors.email</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -63,9 +73,18 @@ const LoginPage = () => {
                 type="password"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors((prev) => ({
+                    ...prev,
+                    password: "",
+                  }));
+                }}
                 required
               />
+              {errors.password && (
+                <p className="mt-1 text-red-500 text-sm">errors.password</p>
+              )}
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>

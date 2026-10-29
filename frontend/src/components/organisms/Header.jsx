@@ -1,11 +1,13 @@
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, ClipboardList } from "lucide-react";
 import Logo from "../atoms/Logo";
 import { Button } from "@/components/ui/button";
 import BackgroundImage from "../atoms/BackgroundImage";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Header = ({ cartCount = 0, onCartClick }) => {
   const [scrolled, setScrolled] = useState(false);
+  const navigate = useNavigate();
   useEffect(() => {
     const scrollColor = () => {
       setScrolled(window.scrollY > 150);
@@ -30,9 +32,9 @@ const Header = ({ cartCount = 0, onCartClick }) => {
           <Button
             size="icon"
             className="relative shrink-0 bg-slate-950/10 cursor-pointer hover:bg-white hover:border-amber-600"
-            onClick={onCartClick}
+            onClick={() => navigate("/history")}
           >
-            <ShoppingCart
+            <ClipboardList
               className={scrolled ? "text-amber-600" : "text-black"}
             />
             {cartCount > 0 && (
