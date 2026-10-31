@@ -4,12 +4,21 @@ import MenuPage from "./components/pages/MenuPage";
 import CheckoutPage from "./components/pages/CheckoutPage";
 import PaymentPage from "./components/pages/PaymentPage";
 import OrderHistory from "./components/pages/OrderHistory";
+import GuestRoute from "./auth/GuestRoute";
+import ProtectedRoute from "./auth/ProtectedRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/login"
+          element={
+            <GuestRoute>
+              <LoginPage />
+            </GuestRoute>
+          }
+        />
         <Route path="/menu" element={<MenuPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/payments" element={<PaymentPage />} />

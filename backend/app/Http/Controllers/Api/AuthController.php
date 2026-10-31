@@ -16,12 +16,10 @@ class AuthController extends Controller
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
-
-        $user = \App\Models\User::where(
+        $user = User::where(
             'email',
             $credentials['email']
         )->first();
-
         if (!$user || !Hash::check(
             $credentials['password'],
             $user->password
@@ -30,28 +28,21 @@ class AuthController extends Controller
                 'msg' => 'Email atau password salah',
             ], 401);
         }
-
-        if ($request->hasSession()) {
-            Auth::guard('web')->login($user);
-            $request->session()->regenerate();
-        }
-
-        // Auth::login($user);
-        $token = $user->createToken('auth-token')->plainTextToken;
-
+        Auth::guard('web')->login($user);
+        $request->session()->regenerate();
         return response()->json([
             'msg' => 'Login berhasil',
             'user' => $user,
-            'token' => $token,
         ]);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
-
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
         return response()->json([
-            'msg' => 'Logout berhasil'
+            'msg' => 'Logout berhasil',
         ]);
     }
 }

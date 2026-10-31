@@ -80,6 +80,7 @@ const MenuPage = () => {
       onCheckout={handleCheckout}
     >
       <TypeOrder value={orderType} onChange={setOrderType} />
+
       <CategoryTabs
         categories={Object.keys(groupCategory)}
         activeCategory={activeCategory}

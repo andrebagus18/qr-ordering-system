@@ -8,11 +8,15 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\TableController;
 use App\Http\Controllers\Api\UserController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
 });
 Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
     Route::get('/users', [UserController::class, 'index']);
@@ -20,23 +24,10 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
     Route::put('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
     Route::get('/orders', [OrderController::class, 'index']);
-    Route::post('/orders', [OrderController::class, 'store']);
-    Route::get('/orders/{order}', [OrderController::class, 'show']);
-    Route::put('/orders/{order}', [OrderController::class, 'update']);
-
-    Route::get('/orders/item/{order}', [OrderItemController::class, 'show']);
-    Route::put('/payments/{payment}', [PaymentController::class, 'update']);
-    Route::post('/payments', [PaymentController::class, 'store']);
-    Route::get('/payments/{payment}', [PaymentController::class, 'show']);
     Route::patch('/payments/{id}/confirm-cash', [PaymentController::class, 'confirmCashPayment']);
-    Route::get('/categories', [CategoryController::class, 'index']);
     Route::post('/categories', [CategoryController::class, 'store']);
     Route::put('/categories/{category}', [CategoryController::class, 'update']);
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
-    Route::get('/products', [ProductController::class, 'index']);
-    Route::post('/products', [ProductController::class, 'store']);
-    Route::put('/products/{product}', [ProductController::class, 'update']);
-    Route::delete('/products/{product}', [ProductController::class, 'destroy']);
     Route::get('/tables', [TableController::class, 'index']);
     Route::post('/tables', [TableController::class, 'store']);
     Route::put('/tables/{table}', [TableController::class, 'update']);
@@ -46,7 +37,20 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
 Route::middleware('auth:sanctum')->group(function () {});
 
 
+
+Route::put('/orders/{order}', [OrderController::class, 'update']);
+Route::post('/orders', [OrderController::class, 'store']);
+Route::get('/orders/{order}', [OrderController::class, 'show']);
+Route::get('/orders/item/{order}', [OrderItemController::class, 'show']);
+Route::get('/categories', [CategoryController::class, 'index']);
+Route::post('/products', [ProductController::class, 'store']);
+Route::put('/products/{product}', [ProductController::class, 'update']);
+Route::delete('/products/{product}', [ProductController::class, 'destroy']);
+Route::get('/products', [ProductController::class, 'index']);
 Route::post('/payments/notification', [PaymentController::class, 'notification']);
 Route::get('/payments/{id}/status', [PaymentController::class, 'getPaymentStatus']);
 Route::post('/payments/{id}/cancel', [PaymentController::class, 'cancel']);
 Route::get('/payments/{id}/sync-status', [PaymentController::class, 'syncStatus']);
+Route::put('/payments/{payment}', [PaymentController::class, 'update']);
+Route::post('/payments', [PaymentController::class, 'store']);
+Route::get('/payments/{payment}', [PaymentController::class, 'show']);
