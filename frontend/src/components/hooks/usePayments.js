@@ -29,7 +29,7 @@ export function usePayment() {
       const result = await getPaymetStatus(id);
       return result.data;
     } catch (error) {
-      showError(error.response?.data?.msg || "Gagal memua status pembayaran");
+      showError(error.response?.data?.msg || "Gagal memuat status pembayaran");
     } finally {
       setLoading(false);
     }

@@ -5,10 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Price from "../atoms/Price";
 import { usePayment } from "../hooks/usePayments";
+import { useProducts } from "../hooks/useProducts";
 import { useEffect, useState } from "react";
 
 const PaymentPage = () => {
   const { getStatus } = usePayment();
+  const { clearCart } = useProducts();
   const location = useLocation();
   const navigate = useNavigate();
   const {
@@ -19,24 +21,29 @@ const PaymentPage = () => {
   const [paymentStatus, setPaymentStatus] = useState(
     payment?.status ?? "PENDING",
   );
-  // const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState(false);
   const isQRIS = paymentMethod === "QRIS";
   const isPaid = paymentStatus === "SUCCESS";
-  // const handleQR = async () => {
-  //   if (!payment?.qr_code) return;
-  //   await navigator.clipboard.writeText(payment.qr_code);
-  //   setCopied(true);
-  // };
+  const handleQR = async () => {
+    if (!payment?.qr_code) return;
+    await navigator.clipboard.writeText(payment.qr_code);
+    setCopied(true);
+  };
   useEffect(() => {
     if (!isQRIS || !payment?.payment?.id || paymentStatus === "SUCCESS") {
       return;
     }
     let active = true;
+    let cleared = false;
     const check = async () => {
       try {
         const result = await getStatus(payment.payment.id);
         if (active) {
           setPaymentStatus(result.status);
+        }
+        if (result.status === "SUCCESS" && !cleared) {
+          cleared = true;
+          clearCart();
         }
       } catch (error) {
         console.error("Gagal mengecek status pembayaran", error);
@@ -175,7 +182,7 @@ const PaymentPage = () => {
                 <p className="text-center text-sm text-muted-foreground">
                   Scan QRIS menggunakan aplikasi pembayaran Anda.
                 </p>
-                {/* {payment?.qr_code && (
+                {payment?.qr_code && (
                   <Button
                     variant="outline"
                     className="w-full"
@@ -193,7 +200,7 @@ const PaymentPage = () => {
                       </>
                     )}
                   </Button>
-                )} */}
+                )}
               </>
             ) : (
               <div className="rounded-xl bg-muted p-5 text-center">

@@ -55,9 +55,16 @@ export function useProducts() {
   );
 
   const handleCheckout = () => {
+    console.log("cart:", {
+      cart,
+      products,
+      cartItems,
+      cartTotal,
+    });
     if (cartItems.length === 0) {
       return;
     }
+
     navigate("/checkout", {
       state: {
         cartItems,
@@ -93,6 +100,9 @@ export function useProducts() {
       return updated;
     });
   };
+  const clearCart = () => {
+    setCart({});
+  };
 
   return {
     products,
@@ -110,5 +120,6 @@ export function useProducts() {
     setOrderType,
     cartOpen,
     setCartOpen,
+    clearCart,
   };
 }

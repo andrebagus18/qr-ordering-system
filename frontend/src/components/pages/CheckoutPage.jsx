@@ -44,12 +44,17 @@ const CheckoutPage = () => {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
     try {
-      const orderId =
+      let orderId =
         location.state?.orderId || sessionStorage.getItem("orderId");
       let orderResponse;
       if (orderId) {
         const order = await getOrder(orderId);
         if (order.payments?.some((payment) => payment.status === "SUCCESS")) {
+          sessionStorage.removeItem("orderId");
+          navigate(location.pathname, {
+            replace: true,
+            state: null,
+          });
           setErrors({
             checkout: "Order ini sudah dibayar. Silakan buat pesanan baru.",
           });
