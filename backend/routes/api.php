@@ -34,9 +34,6 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
     Route::delete('/tables/{table}', [TableController::class, 'destroy']);
 });
 
-Route::middleware('auth:sanctum')->group(function () {});
-
-
 
 Route::put('/orders/{order}', [OrderController::class, 'update']);
 Route::post('/orders', [OrderController::class, 'store']);

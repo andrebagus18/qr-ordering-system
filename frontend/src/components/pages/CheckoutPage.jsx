@@ -51,10 +51,7 @@ const CheckoutPage = () => {
         const order = await getOrder(orderId);
         if (order.payments?.some((payment) => payment.status === "SUCCESS")) {
           sessionStorage.removeItem("orderId");
-          navigate(location.pathname, {
-            replace: true,
-            state: null,
-          });
+          orderId = null;
           setErrors({
             checkout: "Order ini sudah dibayar. Silakan buat pesanan baru.",
           });
@@ -98,6 +95,7 @@ const CheckoutPage = () => {
           orderType,
           orderId,
         });
+        console.log("if:", orderResponse);
       } else {
         orderResponse = await submitOrder({
           cartItems,
@@ -105,6 +103,7 @@ const CheckoutPage = () => {
           orderType,
         });
       }
+      console.log("else:", orderResponse);
       sessionStorage.setItem("orderId", orderResponse.data.id);
       const paymentResponse = await submitPayment({
         order_id: orderResponse.data.id,

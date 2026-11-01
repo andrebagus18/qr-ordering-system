@@ -49,10 +49,17 @@ export function useProducts() {
     (total, item) => total + item.price * item.quantity,
     0,
   );
+  console.log("cardTotal:", cartTotal);
   const cartCount = Object.values(cart).reduce(
     (total, quantity) => total + quantity,
     0,
   );
+  console.log("cartCount:", {
+    cart,
+    cartCount,
+    cartItems,
+    cartTotal,
+  });
 
   const handleCheckout = () => {
     console.log("cart:", {
@@ -64,7 +71,12 @@ export function useProducts() {
     if (cartItems.length === 0) {
       return;
     }
-
+    console.log("cart2:", {
+      cart,
+      products,
+      cartItems,
+      cartTotal,
+    });
     navigate("/checkout", {
       state: {
         cartItems,
