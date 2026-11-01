@@ -34,6 +34,7 @@ const CheckoutPage = () => {
   );
 
   const handleSubmit = async () => {
+    console.log("klik");
     const newErrors = {};
     if (!customerName.trim()) {
       newErrors.customerName = "Nama wajib diisi!";
@@ -43,20 +44,29 @@ const CheckoutPage = () => {
     }
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
+    console.log("klik 2");
     try {
       let orderId =
         location.state?.orderId || sessionStorage.getItem("orderId");
       let orderResponse;
+      console.log("klik 3");
       if (orderId) {
+        console.log("klik 4");
         const order = await getOrder(orderId);
-        if (order.payments?.some((payment) => payment.status === "SUCCESS")) {
+        const orderPaymentStatus = order.payments?.some(
+          (payment) => payment.status === "SUCCESS",
+        );
+        if (orderPaymentStatus) {
+          console.log("klik 27");
           sessionStorage.removeItem("orderId");
           orderId = null;
+          console.log("klik 6");
           setErrors({
             checkout: "Order ini sudah dibayar. Silakan buat pesanan baru.",
           });
-          return;
+          console.log("klik 8");
         }
+        console.log("klik 55555");
 
         const pendingPayment = order.payments
           ?.filter((payment) => payment.status === "PENDING")
@@ -64,7 +74,6 @@ const CheckoutPage = () => {
 
         if (pendingPayment) {
           const result = await confirmCancel(pendingPayment.id);
-
           // Customer ingin kembali ke QRIS lama.
           if (result === "BACK_TO_OLD_PAYMENT") {
             navigate("/payments", {
@@ -74,7 +83,6 @@ const CheckoutPage = () => {
                 paymentMethod: pendingPayment.payment_method,
               },
             });
-
             return;
           }
 
@@ -97,6 +105,7 @@ const CheckoutPage = () => {
         });
         console.log("if:", orderResponse);
       } else {
+        console.log("klik 0000");
         orderResponse = await submitOrder({
           cartItems,
           customerName,
