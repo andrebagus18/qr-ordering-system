@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Table extends Model
 {
@@ -10,6 +11,15 @@ class Table extends Model
         'table_number',
         'qr_code',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Table $table) {
+            if (empty($table->qr_code)) {
+                $table->qr_code = (string) Str::uuid();
+            }
+        });
+    }
 
     public function orders()
     {

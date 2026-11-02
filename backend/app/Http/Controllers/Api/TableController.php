@@ -5,14 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Table;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+
 
 class TableController extends Controller
 {
     public function index()
     {
-        $tables = Table::all();
-
+        $tables = Table::withCount('orders')->latest()->get();
         return response()->json([
             'msg' => 'Meja berhasil diambil',
             'data' => $tables
@@ -24,40 +24,50 @@ class TableController extends Controller
         $data = $request->validate([
             'table_number' => ['required', 'string', 'max:20', 'unique:tables,table_number'],
         ]);
-
-        $table = Table::create([
-            'table_number' => $data['table_number'],
-            'qr_code' => 'Table-' . $data['table_number'] . Str::uuid()
-        ]);
+        $table = Table::create($data);
 
         return response()->json([
             'msg' => 'Table berhasil dibuat',
             'data' => $table
-        ]);
+        ], 201);
     }
 
     public function update(Request $request, Table $table)
     {
         $data = $request->validate([
-            'table_number' => ['required', 'string', 'max:20', 'unique:tables,table_number'],
+            'table_number' => ['required', 'string', 'max:20', 'unique:tables,table_number' . $table->id],
         ]);
-
-        $table->update([
-            'table_number' => $data['table_number'],
-            'qr_code' => 'Table-' . $data['table_number'] . Str::uuid()
-        ]);
-
+        $table->update($data);
         return response()->json([
             'msg' => 'Table berhasil diubah',
             'data' => $table->fresh()
         ]);
     }
 
-    public function destroy(Table $table)
+    // public function destroy(Table $table)
+    // {
+    //     $table->delete();
+    //     return response()->json([
+    //         'msg' => 'Table berhasil dihapus'
+    //     ]);
+    // }
+
+    public function qrCode(Table $table)
     {
-        $table->delete();
+        $url = 'http://192.168.100.24:5173/menu?table=' . $table->qr_code;
+        $qrCode = QrCode::format('svg')->size(300)->generate($url);
+        return response($qrCode)->header('Content-Type', 'image/svg+xml');
+    }
+
+    public function findByQrCode($qrCode)
+    {
+        $table = Table::where('qr_code', $qrCode)->firstOrFail();
         return response()->json([
-            'msg' => 'Table berhasil dihapus'
+            'data' => [
+                'id' => $table->id,
+                'table_number' => $table->table_number,
+                'qr_code' => $table->qr_code,
+            ]
         ]);
     }
 }

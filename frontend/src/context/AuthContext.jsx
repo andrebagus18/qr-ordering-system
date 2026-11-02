@@ -22,10 +22,14 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       const result = await getCurrentUser();
-      setUser(result);
+      setUser(result.data);
     } catch (error) {
-      console.error("fetch User:", error);
-      setUser(null);
+      if (error.response?.status === 401) {
+        setUser(null);
+      } else {
+        console.error("Fetch user:", error);
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }

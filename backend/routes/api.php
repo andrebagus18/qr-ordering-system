@@ -23,7 +23,6 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
     Route::post('/users', [UserController::class, 'store']);
     Route::put('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
-    Route::get('/orders', [OrderController::class, 'index']);
     Route::patch('/payments/{id}/confirm-cash', [PaymentController::class, 'confirmCashPayment']);
     Route::post('/categories', [CategoryController::class, 'store']);
     Route::put('/categories/{category}', [CategoryController::class, 'update']);
@@ -31,10 +30,9 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
     Route::get('/tables', [TableController::class, 'index']);
     Route::post('/tables', [TableController::class, 'store']);
     Route::put('/tables/{table}', [TableController::class, 'update']);
-    Route::delete('/tables/{table}', [TableController::class, 'destroy']);
 });
 
-
+Route::get('/orders', [OrderController::class, 'index']);
 Route::put('/orders/{order}', [OrderController::class, 'update']);
 Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/orders/{order}', [OrderController::class, 'show']);
@@ -51,3 +49,5 @@ Route::get('/payments/{id}/sync-status', [PaymentController::class, 'syncStatus'
 Route::put('/payments/{payment}', [PaymentController::class, 'update']);
 Route::post('/payments', [PaymentController::class, 'store']);
 Route::get('/payments/{payment}', [PaymentController::class, 'show']);
+Route::get('/tables/{table}/qr-code', [TableController::class, 'qrCode']);
+Route::get('/tables/qr/{qrCode}', [TableController::class, 'findByQrCode']);

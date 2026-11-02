@@ -12,4 +12,5 @@ export const getPaymetStatus = async (id) => {
 
 export const cancelPayment = async (paymentId) => {
   const response = await api.post(`/payments/${paymentId}/cancel`);
+  return response.data;
 };

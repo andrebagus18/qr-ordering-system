@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import BackgroundImage from "../atoms/BackgroundImage";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTables } from "../hooks/useTables";
 
 const Header = ({ cartCount = 0, onCartClick }) => {
   const [scrolled, setScrolled] = useState(false);
+  const { table, loading } = useTables();
   const navigate = useNavigate();
   useEffect(() => {
     const scrollColor = () => {
@@ -25,7 +27,15 @@ const Header = ({ cartCount = 0, onCartClick }) => {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2">
           <Logo />
           <div className="flex rounded-xl">
-            <h3 className="font-semibold text-md">Meja 01</h3>
+            <h3 className="font-semibold text-md">
+              {loading ? (
+                <span>Memuat meja...</span>
+              ) : table ? (
+                <span>{table.table_number}</span>
+              ) : (
+                <span>Meja tidak ditemukan</span>
+              )}
+            </h3>
             {/* <SearchBar value={search} onChange={onSearchChange} /> */}
           </div>
 

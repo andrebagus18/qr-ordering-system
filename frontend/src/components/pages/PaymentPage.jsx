@@ -26,8 +26,33 @@ const PaymentPage = () => {
   const isPaid = paymentStatus === "SUCCESS";
   const handleQR = async () => {
     if (!payment?.qr_code) return;
-    await navigator.clipboard.writeText(payment.qr_code);
-    setCopied(true);
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(payment.qr_code);
+      } else {
+        const textarea = document.createElement("textarea");
+
+        textarea.value = payment.qr_code;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        const success = document.execCommand("copy");
+        textarea.remove();
+
+        if (!success) {
+          throw new Error("Gagal menyalin QR Code");
+        }
+      }
+
+      setCopied(true);
+    } catch (error) {
+      console.error("Copy QR Code:", error);
+      setCopied(false);
+    }
   };
   useEffect(() => {
     if (!isQRIS || !payment?.payment?.id || paymentStatus === "SUCCESS") {

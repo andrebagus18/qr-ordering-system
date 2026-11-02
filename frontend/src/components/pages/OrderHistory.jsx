@@ -23,6 +23,7 @@ function OrderHistory() {
       console.log("Pesan lagi:", order);
     }
   }
+  console.log("orderPage:", orders);
 
   return (
     <div className="min-h-screen bg-white text-slate-800">

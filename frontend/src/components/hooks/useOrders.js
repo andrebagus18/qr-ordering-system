@@ -43,6 +43,7 @@ export function useOrders() {
       setError(null);
       const response = await getOrderHistory();
       setOrders(response.data);
+      console.log("History:", response.data);
     } catch (error) {
       showError(error.response?.data?.msg || "Gagal mengambil riwayat pesanan");
     } finally {
