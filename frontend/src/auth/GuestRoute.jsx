@@ -7,7 +7,7 @@ function GuestRoute({ children }) {
     return <div>Memeriksa autentikasi...</div>;
   }
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/cashier/dashboard" replace />;
   }
 
   return children;

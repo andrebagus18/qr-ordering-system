@@ -6,6 +6,7 @@ import PaymentPage from "./components/pages/PaymentPage";
 import OrderHistory from "./components/pages/OrderHistory";
 import GuestRoute from "./auth/GuestRoute";
 import ProtectedRoute from "./auth/ProtectedRoute";
+import DashboardCashier from "./components/pages/cashier/DashbboardCashier";
 
 function App() {
   return (
@@ -17,6 +18,14 @@ function App() {
             <GuestRoute>
               <LoginPage />
             </GuestRoute>
+          }
+        />
+        <Route
+          path="/cashier/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardCashier />
+            </ProtectedRoute>
           }
         />
         <Route path="/menu" element={<MenuPage />} />

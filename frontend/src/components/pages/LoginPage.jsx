@@ -26,7 +26,7 @@ const LoginPage = () => {
         email,
         password,
       });
-      navigate("/menu");
+      navigate("/cashier/dashboard");
     } catch (error) {
       console.error("error", error);
     }

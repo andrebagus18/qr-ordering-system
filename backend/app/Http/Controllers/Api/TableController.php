@@ -54,7 +54,7 @@ class TableController extends Controller
 
     public function qrCode(Table $table)
     {
-        $url = 'http://192.168.100.24:5173/menu?table=' . $table->qr_code;
+        $url = config('app.FRONTEND_URL') . '/menu?table=' . $table->qr_code;
         $qrCode = QrCode::format('svg')->size(300)->generate($url);
         return response($qrCode)->header('Content-Type', 'image/svg+xml');
     }
