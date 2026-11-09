@@ -15,12 +15,12 @@ export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // ambil user dari session laravel
   const fetchUser = useCallback(async () => {
     try {
-      setLoading(true);
+      // setLoading(true);
       const result = await getCurrentUser();
       setUser(result.data);
     } catch (error) {
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      setLoading(true);
+      // setLoading(true);
       const result = await loginService(credentials);
       localStorage.setItem("token", result.token);
       setUser(result.user);
