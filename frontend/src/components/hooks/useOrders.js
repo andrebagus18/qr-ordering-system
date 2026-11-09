@@ -4,14 +4,16 @@ import {
   updateOrder,
   showOrder,
   getOrderHistory,
+  dashboard,
 } from "../../services/order.services";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 export function useOrders() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [orders, setOrders] = useState([]);
+  const [summary, setSummary] = useState(null);
 
   const create = async (data) => {
     try {
@@ -43,13 +45,26 @@ export function useOrders() {
       setError(null);
       const response = await getOrderHistory();
       setOrders(response.data);
-      console.log("History:", response.data);
+      // console.log("History:", response.data);
     } catch (error) {
       showError(error.response?.data?.msg || "Gagal mengambil riwayat pesanan");
     } finally {
       setLoading(false);
     }
   };
+
+  const getDashboard = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await dashboard();
+      setSummary(response);
+      // console.log("summary", response);
+    } catch (error) {
+      console.error(error.response?.data?.msg || "Failed to load orders");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const handleSubmit = async ({
     cartItems,
@@ -94,10 +109,12 @@ export function useOrders() {
   return {
     order,
     loading,
+    summary,
     error,
     handleSubmit,
     getOrder,
     orders,
     orderHistory,
+    getDashboard,
   };
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -177,6 +178,16 @@ class OrderController extends Controller
         return response()->json([
             'msg' => 'Order berhasil diperbarui',
             'data' => $order->load('orderItems.product')
+        ]);
+    }
+
+    public function dashboard()
+    {
+        return response()->json([
+            'total_orders' => Order::count(),
+            'processing_orders' => Order::where('status', 'PROCESING')->count(),
+            'qrisPayments' => Payment::where('payment_method', 'QRIS')->count(),
+            'cashPayments' => Payment::where('payment_method', 'CASH')->count(),
         ]);
     }
 }

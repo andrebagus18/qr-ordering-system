@@ -23,6 +23,7 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
     Route::post('/users', [UserController::class, 'store']);
     Route::put('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
+    Route::get('/dashboard', [OrderController::class, 'dashboard']);
     Route::patch('/payments/{id}/confirm-cash', [PaymentController::class, 'confirmCashPayment']);
     Route::post('/categories', [CategoryController::class, 'store']);
     Route::put('/categories/{category}', [CategoryController::class, 'update']);

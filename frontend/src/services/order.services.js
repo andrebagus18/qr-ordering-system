@@ -19,3 +19,9 @@ export const getOrderHistory = async () => {
   const response = await api.get("/orders");
   return response.data;
 };
+
+export const dashboard = async () => {
+  const response = await api.get("/dashboard");
+  // console.log("sum", response.data);
+  return response.data;
+};
