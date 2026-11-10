@@ -20,9 +20,9 @@ export const AuthProvider = ({ children }) => {
   // ambil user dari session laravel
   const fetchUser = useCallback(async () => {
     try {
-      // setLoading(true);
+      setLoading(true);
       const result = await getCurrentUser();
-      setUser(result.data);
+      setUser(result);
     } catch (error) {
       if (error.response?.status === 401) {
         setUser(null);

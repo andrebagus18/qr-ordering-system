@@ -12,19 +12,15 @@ export function getPaymentLabel(order) {
   if (order.paymentStatus === "SUCCESS") {
     return "Sudah Dibayar";
   }
-
   if (order.paymentStatus === "FAILED") {
     return "Pembayaran Gagal";
   }
-
   if (order.paymentStatus === "EXPIRED") {
     return "Kedaluwarsa";
   }
-
   if (order.paymentMethod === "CASH") {
     return "Belum Dibayar";
   }
-
   return "Menunggu Pembayaran";
 }
 

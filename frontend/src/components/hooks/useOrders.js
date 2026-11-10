@@ -3,6 +3,7 @@ import {
   createOrder,
   updateOrder,
   showOrder,
+  showMethodeOrders,
   getOrderHistory,
   dashboard,
 } from "../../services/order.services";
@@ -13,6 +14,7 @@ export function useOrders() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [orders, setOrders] = useState([]);
+  const [orderMethode, setOrderMethode] = useState([]);
   const [summary, setSummary] = useState(null);
 
   const create = async (data) => {
@@ -38,6 +40,19 @@ export function useOrders() {
       throw error;
     }
   };
+
+  const showMethode = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await showMethodeOrders();
+      // console.log("response:", response.data);
+      setOrderMethode(response.data);
+    } catch (error) {
+      console.error(error.response?.data?.msg || "Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const orderHistory = async () => {
     try {
@@ -114,7 +129,9 @@ export function useOrders() {
     handleSubmit,
     getOrder,
     orders,
+    orderMethode,
     orderHistory,
     getDashboard,
+    showMethode,
   };
 }

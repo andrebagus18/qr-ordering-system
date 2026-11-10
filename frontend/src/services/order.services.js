@@ -15,6 +15,12 @@ export const showOrder = async (orderId) => {
   return response.data;
 };
 
+export const showMethodeOrders = async () => {
+  const response = await api.get("/orders");
+  console.log("services", response.data);
+  return response.data;
+};
+
 export const getOrderHistory = async () => {
   const response = await api.get("/orders");
   return response.data;

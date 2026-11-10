@@ -11,11 +11,13 @@ import { useEffect } from "react";
 const DashboardCashier = () => {
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const { getDashboard, summary, loading } = useOrders();
+  const { getDashboard, summary, loading, orderMethode, showMethode } =
+    useOrders();
 
   useEffect(() => {
     getDashboard();
-  }, [getDashboard]);
+    showMethode();
+  }, [getDashboard, showMethode]);
 
   const handleLogout = async () => {
     await logout();
@@ -41,7 +43,7 @@ const DashboardCashier = () => {
       </header>
 
       <SummarySection summary={summary} loading={loading} />
-      <CashSection />
+      <CashSection orderMethode={orderMethode} />
       <IncomingSection />
       <QrisSection />
     </main>

@@ -185,7 +185,7 @@ class OrderController extends Controller
     {
         return response()->json([
             'total_orders' => Order::count(),
-            'processing_orders' => Order::where('status', 'PROCESING')->count(),
+            'processing_orders' => Order::where('status', 'PROCESSING')->count(),
             'qrisPayments' => Payment::where('payment_method', 'QRIS')->count(),
             'cashPayments' => Payment::where('payment_method', 'CASH')->count(),
         ]);

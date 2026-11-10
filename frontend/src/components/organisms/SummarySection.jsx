@@ -1,5 +1,5 @@
 import SummaryCard from "../molecules/SummaryCard";
-import { Wallet, ShoppingBag, QrCodeIcon, CircleDotDashed } from "lucide-react";
+import { Wallet, ShoppingBag, QrCodeIcon, Clock } from "lucide-react";
 
 const SummarySection = ({ summary, loading }) => {
   if (loading) {
@@ -27,7 +27,7 @@ const SummarySection = ({ summary, loading }) => {
     {
       title: "Order Process",
       value: summary.processing_orders,
-      icon: CircleDotDashed,
+      icon: Clock,
     },
   ];
 

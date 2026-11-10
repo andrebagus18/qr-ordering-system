@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useOrders } from "../hooks/useOrders";
 
 function OrderHistory() {
-  const { orders, orderHistory, loading, error } = useOrders();
+  const { orders, loading, error } = useOrders();
   const navigate = useNavigate();
 
   function handleOrderClick(order) {
