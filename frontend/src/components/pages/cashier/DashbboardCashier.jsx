@@ -25,17 +25,17 @@ const DashboardCashier = () => {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 p-6">
+    <main className="min-h-screen bg-gray-700 p-6">
       <header className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Dashboard Kasir</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard Kasir</h1>
+          <p className="mt-1 text-sm text-white">
             Kelola pembayaran dan pesanan pelanggan.
           </p>
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+          className="flex items-center gap-2 rounded-lg bg-red-900/30 border border-red-500 px-4 py-2 text-sm font-medium text-red-500 cursor-pointer"
         >
           <LogOut size={18} />
           Logout
@@ -45,7 +45,7 @@ const DashboardCashier = () => {
       <SummarySection summary={summary} loading={loading} />
       <CashSection getOrders={getOrders} />
       <IncomingSection getOrders={getOrders} />
-      <QrisSection />
+      {/* <QrisSection /> */}
     </main>
   );
 };

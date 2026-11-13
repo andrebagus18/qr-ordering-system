@@ -6,14 +6,14 @@ const CashierStatus = ({ status }) => {
   };
 
   const labels = {
-    PENDING_PAYMENT: "Menunggu Pembayaran",
+    PENDING_PAYMENT: "Pending",
     SUCCESS: "Lunas",
-    PROCESSING: "Sedang Diproses",
+    PROCESSING: "Proses",
   };
 
   return (
     <span
-      className={`rounded-full px-3 py-1 text-xs font-medium ${
+      className={`rounded-sm px-3 py-1 text-xs font-medium ${
         styles[status] || "bg-gray-100 text-gray-600"
       }`}
     >

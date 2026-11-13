@@ -9,12 +9,12 @@ const CashSection = ({ getOrders }) => {
   return (
     <section className="mb-8">
       <div className="mb-4 flex items-center gap-2">
-        <Clock size={20} className="text-yellow-600" />
-        <h2 className="text-lg font-semibold text-gray-800">
+        <Clock size={24} className="text-yellow-600" />
+        <h2 className="text-2xl font-semibold text-gray-900">
           Konfirmasi Pembayaran Cash
         </h2>
       </div>
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2 h-auto">
         {cashOrders.map((order) => (
           <OrderItem
             key={order.id}
@@ -27,7 +27,7 @@ const CashSection = ({ getOrders }) => {
           />
         ))}
         {cashOrders.length === 0 && (
-          <p className="p-5 text-sm text-gray-500">
+          <p className="p-5 text-sm text-white">
             Tidak ada pembayaran Cash yang menunggu konfirmasi.
           </p>
         )}
