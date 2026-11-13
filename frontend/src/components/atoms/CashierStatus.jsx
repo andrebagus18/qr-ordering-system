@@ -13,7 +13,7 @@ const CashierStatus = ({ status }) => {
 
   return (
     <span
-      className={`rounded-sm px-3 py-1 text-xs font-medium ${
+      className={`rounded-sm p-1 sm:px-2 text-xs sm:text-sm font-medium ${
         styles[status] || "bg-gray-100 text-gray-600"
       }`}
     >

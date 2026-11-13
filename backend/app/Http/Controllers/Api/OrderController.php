@@ -12,13 +12,18 @@ use Illuminate\Support\Facades\Http;
 
 class OrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->query('search');
         $orders = Order::with([
             'table',
             'orderItems.product',
             'payments',
-        ])->latest()->get();
+        ])->when($search, function ($query, $search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('order_number', 'LIKE', "%{$search}")->orWhere('customer_name', 'LIKE', "%{$search}%");
+            });
+        })->latest()->get();
 
         return response()->json([
             'data' => $orders,

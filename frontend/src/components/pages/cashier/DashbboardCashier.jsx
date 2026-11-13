@@ -25,7 +25,7 @@ const DashboardCashier = () => {
   };
 
   return (
-    <main className="min-h-screen bg-gray-700 p-6">
+    <main className="min-h-screen bg-gray-700 p-4 sm:p-6">
       <header className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard Kasir</h1>

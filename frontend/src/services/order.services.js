@@ -15,8 +15,8 @@ export const showOrder = async (orderId) => {
   return response.data;
 };
 
-export const getManyOrders = async () => {
-  const response = await api.get("/orders");
+export const getManyOrders = async (search = "") => {
+  const response = await api.get("/orders", { params: { search } });
   // console.log("services", response.data);
   return response.data;
 };
