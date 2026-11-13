@@ -15,9 +15,9 @@ export const showOrder = async (orderId) => {
   return response.data;
 };
 
-export const showMethodeOrders = async () => {
+export const getManyOrders = async () => {
   const response = await api.get("/orders");
-  console.log("services", response.data);
+  // console.log("services", response.data);
   return response.data;
 };
 
