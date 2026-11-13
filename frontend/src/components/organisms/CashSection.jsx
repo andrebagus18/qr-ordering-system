@@ -43,7 +43,7 @@ const CashSection = ({ getOrders }) => {
           />
         ))}
         {cashOrders.length === 0 && (
-          <p className="p-5 text-sm sm:text-md text-white">
+          <p className="p-5 text-sm sm:text-lg text-white">
             Tidak ada pembayaran Cash ditemukan.!.
           </p>
         )}

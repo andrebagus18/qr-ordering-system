@@ -4,11 +4,12 @@ import { useState } from "react";
 
 const IncomingSection = ({ getOrders }) => {
   const [search, setSearch] = useState("");
-  const filterSearch = getOrders.filter((order) => {
+  const incomingOrders = getOrders.filter((order) => {
     const keyword = search.toLowerCase();
     return (
-      order.order_number?.toLowerCase().includes(keyword) ||
-      order.customer_name?.toLowerCase().includes(keyword)
+      order.status === "PROCESSING" &&
+      (order.order_number?.toLowerCase().includes(keyword) ||
+        order.customer_name?.toLowerCase().includes(keyword))
     );
   });
 
@@ -28,7 +29,7 @@ const IncomingSection = ({ getOrders }) => {
         </div>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 h-auto">
-        {filterSearch.map((order) => (
+        {incomingOrders.map((order) => (
           <OrderItem
             key={order.id}
             order={order}
@@ -39,7 +40,7 @@ const IncomingSection = ({ getOrders }) => {
             }
           />
         ))}
-        {filterSearch.length === 0 && (
+        {incomingOrders.length === 0 && (
           <p className="p-5 text-sm sm:text-lg text-white text-center">
             Order tidak ditemukan.!
           </p>
