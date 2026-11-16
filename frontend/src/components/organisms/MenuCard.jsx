@@ -6,9 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const MenuCard = ({ product, quantity = 0, onIncrease, onDecrease }) => {
   return (
-    <Card className="gap-0 overflow-hidden rounded-lg py-0">
+    <Card className="gap-0 overflow-hidden rounded-lg py-0 border border-slate-200/10 shadow-lg">
       {/* Product Image */}
-      <div className="relative aspect-square overflow-hidden">
+      <div className="relative aspect-square overflow-hidden flex items-center">
         <ProductImage src={product.image} alt={product.name} />
         {!product.is_available && (
           <Badge variant="destructive" className="absolute left-3 top-3">

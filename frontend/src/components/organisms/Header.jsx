@@ -33,7 +33,7 @@ const Header = ({ cartCount = 0, onCartClick }) => {
               ) : table ? (
                 <span>{table.table_number}</span>
               ) : (
-                <span>Meja tidak ditemukan</span>
+                <span>Meja 01</span>
               )}
             </h3>
             {/* <SearchBar value={search} onChange={onSearchChange} /> */}
