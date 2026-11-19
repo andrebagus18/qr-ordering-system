@@ -80,7 +80,7 @@ const PaymentPage = () => {
       active = false;
       clearInterval(timer);
     };
-  }, [isQRIS, payment?.payment?.id, paymentStatus, getStatus]);
+  }, [isQRIS, payment?.payment?.id, paymentStatus, getStatus, clearCart]);
 
   if (!order) {
     return (

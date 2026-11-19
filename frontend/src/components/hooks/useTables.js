@@ -1,5 +1,5 @@
 import { getTableQr } from "@/services/tables.services";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 export function useTables() {
@@ -8,7 +8,7 @@ export function useTables() {
   const [searchParams] = useSearchParams();
   const qrCode = searchParams.get("table");
 
-  const fetchTable = async () => {
+  const fetchTable = useCallback(async () => {
     if (!qrCode) {
       setLoading(false);
       return;
@@ -16,18 +16,21 @@ export function useTables() {
     try {
       const response = await getTableQr();
       setTable(response.data);
-      console.log(response.data);
+      // console.log(response.data);
     } catch (error) {
       console.error("Gagal mengambil data meja:", error);
       setTable(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, [qrCode]);
 
   useEffect(() => {
-    fetchTable();
-  }, [qrCode]);
+    const timer = setTimeout(() => {
+      fetchTable();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchTable]);
 
   return {
     table,

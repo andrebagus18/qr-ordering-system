@@ -1,4 +1,4 @@
-import { ShoppingCart, ClipboardList } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 import Logo from "../atoms/Logo";
 import { Button } from "@/components/ui/button";
 import BackgroundImage from "../atoms/BackgroundImage";
@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTables } from "../hooks/useTables";
 
-const Header = ({ cartCount = 0, onCartClick }) => {
+const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const { table, loading } = useTables();
   const navigate = useNavigate();

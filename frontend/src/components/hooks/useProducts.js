@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 const getInitialCart = () => {
   try {
     return JSON.parse(localStorage.getItem("kopi-kita-cart")) || {};
-  } catch (error) {
+  } catch {
     return {};
   }
 };
@@ -32,7 +32,10 @@ export function useProducts() {
   }, []);
 
   useEffect(() => {
-    fetchProducts();
+    const timer = setTimeout(() => {
+      fetchProducts();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchProducts]);
 
   useEffect(() => {

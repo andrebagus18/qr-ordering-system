@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import CustomerLayout from "../templates/CustomerLayout";
 import MenuGrid from "../organisms/MenuGrid";
 import CartSummaryBar from "../organisms/CartSummaryBar";
@@ -50,7 +50,7 @@ const MenuPage = () => {
       (entries) => {
         const visibleSections = entries
           .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - a.boundingClientRect.top);
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
         if (visibleSections.length > 0) {
           const id = visibleSections[0].target.id;
           const category = id.replace("category-", "");

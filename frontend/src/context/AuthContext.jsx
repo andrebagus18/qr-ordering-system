@@ -1,16 +1,11 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import {
   login as loginService,
   logout as logoutService,
   getCurrentUser,
 } from "../services/auth.services";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -18,26 +13,56 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // ambil user dari session laravel
-  const fetchUser = useCallback(async () => {
-    try {
-      setLoading(true);
-      const result = await getCurrentUser();
-      setUser(result);
-    } catch (error) {
-      if (error.response?.status === 401) {
-        setUser(null);
-      } else {
-        console.error("Fetch user:", error);
-        setUser(null);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // const fetchUser = useCallback(async () => {
+  //   try {
+  //     // setLoading(true);
+  //     const result = await getCurrentUser();
+  //     setUser(result);
+  //   } catch (error) {
+  //     if (error.response?.status === 401) {
+  //       setUser(null);
+  //     } else {
+  //       console.error("Fetch user:", error);
+  //       setUser(null);
+  //     }
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, []);
+
+  // useEffect(() => {
+  //   fetchUser();
+  // }, [fetchUser]);
 
   useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
+    let ignore = false;
+
+    getCurrentUser()
+      .then((result) => {
+        if (!ignore) {
+          setUser(result);
+        }
+      })
+      .catch((error) => {
+        if (!ignore) {
+          if (error.response?.status === 401) {
+            setUser(null);
+          } else {
+            console.error("Fetch user:", error);
+            setUser(null);
+          }
+        }
+      })
+      .finally(() => {
+        if (!ignore) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const login = async (credentials) => {
     try {
@@ -72,6 +97,7 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   return useContext(AuthContext);
 };

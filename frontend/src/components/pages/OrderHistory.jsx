@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { formatRupiah, getPaymentLabel, getPaymentColor } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -8,22 +7,22 @@ function OrderHistory() {
   const { orders, loading, error } = useOrders();
   const navigate = useNavigate();
 
-  function handleOrderClick(order) {
-    if (onOrderClick) {
-      onOrderClick(order);
-    } else {
-      console.log("Detail pesanan:", order);
-    }
-  }
+  // function handleOrderClick(order) {
+  //   if (onOrderClick) {
+  //     onOrderClick(order);
+  //   } else {
+  //     console.log("Detail pesanan:", order);
+  //   }
+  // }
 
-  function handleOrderAgain(order) {
-    if (onOrderAgain) {
-      onOrderAgain(order);
-    } else {
-      console.log("Pesan lagi:", order);
-    }
-  }
-  console.log("orderPage:", orders);
+  // function handleOrderAgain(order) {
+  //   if (onOrderAgain) {
+  //     onOrderAgain(order);
+  //   } else {
+  //     console.log("Pesan lagi:", order);
+  //   }
+  // }
+  // console.log("orderPage:", orders);
 
   return (
     <div className="min-h-screen bg-white text-slate-800">
@@ -91,7 +90,7 @@ function OrderHistory() {
                 {/* Order information */}
                 <button
                   type="button"
-                  onClick={() => handleOrderClick()}
+                  // onClick={() => handleOrderClick()}
                   className="w-full px-3 py-4 text-left transition hover:bg-slate-50/70"
                 >
                   <div className="flex items-start gap-3">
@@ -160,7 +159,7 @@ function OrderHistory() {
                   {isCompleted && (
                     <button
                       type="button"
-                      onClick={() => handleOrderAgain()}
+                      // onClick={() => handleOrderAgain()}
                       className="shrink-0 rounded-md bg-amber-600/30 border border-amber-600 px-5 py-1 text-[15px] font-semibold text-slate-800 hover:text-white transition hover:bg-amber-600 active:scale-95 cursor-pointer"
                     >
                       Pesan Lagi

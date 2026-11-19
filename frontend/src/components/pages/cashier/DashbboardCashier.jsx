@@ -5,7 +5,7 @@ import { useOrders } from "../../hooks/useOrders";
 import SummarySection from "@/components/organisms/SummarySection";
 import CashSection from "@/components/organisms/CashSection";
 import IncomingSection from "@/components/organisms/IncomingSection";
-import QrisSection from "@/components/organisms/QrisSection";
+// import QrisSection from "@/components/organisms/QrisSection";
 import { useEffect } from "react";
 
 const DashboardCashier = () => {

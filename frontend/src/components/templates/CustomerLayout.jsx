@@ -1,18 +1,11 @@
 import Header from "../organisms/Header";
-import CartDrawer from "../organisms/CartDrawer";
 
 const CustomerLayout = ({
   children,
   search,
   onSearchChange,
   cartCount,
-  cartOpen,
   onCartOpenChange,
-  cartItems,
-  onIncrease,
-  onDecrease,
-  onRemove,
-  onCheckout,
 }) => {
   return (
     <div className="min-h-screen bg-muted/30">
