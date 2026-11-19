@@ -11,6 +11,8 @@ jobs:
   backend:
     name: Backend Tests
     runs-on: ubuntu-latest
+    env:
+      APP_KEY: "base64:pKXYTal1iAq/9gXvj3yNpq27lqwZrtcYwI/Vq7F9S14="
 
     defaults:
       run:
