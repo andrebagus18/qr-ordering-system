@@ -11,6 +11,8 @@ jobs:
   backend:
     name: Backend Tests
     runs-on: ubuntu-latest
+    env:
+      APP_KEY: "base64:Jb73R3YZkaqEZ69u4RU8SRGraU8zRmymO0KcsyikDnI="
 
     defaults:
       run:
@@ -27,9 +29,10 @@ jobs:
           coverage: none
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Check APP_KEY
+        run: |
+          php -r "echo getenv('APP_KEY') ? 'APP_KEY tersedia' : 'APP_KEY kosong';"
       - name: Run Laravel tests
-        env:
-          APP_KEY: "base64:Jb73R3YZkaqEZ69u4RU8SRGraU8zRmymO0KcsyikDnI="
         run: composer test
 
   # FRONTEND REACT
